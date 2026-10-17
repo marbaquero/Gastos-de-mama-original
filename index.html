@@ -103,6 +103,28 @@ async function uploadRecibo(file){
   return name; // guardamos el path
 }
 
+// Abre el recibo en una pestaña nueva. La pestaña se abre primero (al tocar) para que iPhone/Safari no la bloquee.
+async function verRecibo(path){
+  if(!path) return;
+  const w=window.open('','_blank');
+  try{
+    const r=await fetch(SUPA_URL+'/storage/v1/object/sign/recibos/'+encodeURI(path),{
+      method:'POST',
+      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({expiresIn:300})
+    });
+    if(!r.ok) throw Error(await r.text());
+    const j=await r.json(), signed=j.signedURL||j.signedUrl;
+    if(!signed) throw Error('No signed URL');
+    const url=SUPA_URL+'/storage/v1'+signed;
+    if(w) w.location.href=url; else window.location.href=url;
+  }catch(e){
+    console.error(e);
+    if(w) w.close();
+    toast('No se pudo abrir el recibo.');
+  }
+}
+
 async function loadSaldo(){
   try{
     const data=await api('movimientos?select=tipo,monto');
@@ -119,9 +141,9 @@ async function loadLista(){
     $('lista').innerHTML='<table><tr><th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th><th></th></tr>'+
       data.map(x=>`<tr>
         <td>${x.fecha}</td>
-        <td>${x.descripcion||''}${x.registrado_por?` <span class="mut">· ${String(x.registrado_por).replace(/</g,'&lt;')}</span>`:''}${x.recibo_url?' 📎':''}</td>
+        <td>${x.descripcion||''}${x.registrado_por?` <span class="mut">· ${String(x.registrado_por).replace(/</g,'&lt;')}</span>`:''}</td>
         <td class="monto-neg">-${money(x.monto).replace('$','')}</td>
-        <td><button class="edit-btn" onclick="editar(${x.id})">✎</button></td>
+        <td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${x.recibo_url?`<button class="edit-btn" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>📎 Recibo</button>`:''}<button class="edit-btn" onclick="editar(${x.id})">✎</button></div></td>
       </tr>`).join('')+'</table>';
   }catch(e){console.error(e);$('lista').innerHTML='<p class="mut">Error cargando.</p>'}
 }
