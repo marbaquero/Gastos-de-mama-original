@@ -21,23 +21,12 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{pa
 .edit-btn{width:auto;padding:6px 12px;background:#eef2ff;color:#3730a3;border-radius:8px;font-size:13px;margin:0}
 .msg{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;z-index:99;display:none}
 .msg.show{display:block}
-#lock{position:fixed;inset:0;background:#f5f5f7;z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-#lock.on{display:flex}
-#lockBox{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:340px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-#pinIn{text-align:center;font-size:26px;letter-spacing:10px}
 .quien{display:flex;gap:8px}
 .quien button{margin:0;padding:12px 8px;background:#e5e7eb;color:#111;font-size:15px}
 .quien button.sel{background:#111;color:#fff}
 </style>
 </head>
 <body>
-<div id="lock"><div id="lockBox">
-<h2 style="margin:0 0 6px">Gastos de Mamá</h2>
-<p class="mut" style="margin:0 0 14px">Escribe el PIN para entrar</p>
-<input id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
-<button id="pinOk">Entrar</button>
-<p class="mut" id="pinErr" style="color:#b91c1c;display:none;margin-top:10px">PIN incorrecto</p>
-</div></div>
 <div id="msg" class="msg"></div>
 <main class="w">
 <h1 style="font-size:28px;margin:12px 4px">Gastos de Mamá</h1>
@@ -85,17 +74,7 @@ let editingId=null;
 let editingReciboUrl=null;
 let allData=[];
 let quien=null;
-const PIN_HASH='03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // SHA-256 del PIN
 function ls(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
-async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function tryPin(){
-  const ok=(await sha($('pinIn').value.trim()))===PIN_HASH;
-  if(ok){ ls('gm_pin_ok',PIN_HASH); $('lock').classList.remove('on'); $('pinErr').style.display='none'; }
-  else { $('pinErr').style.display='block'; $('pinIn').value=''; }
-}
-$('pinOk').onclick=tryPin;
-$('pinIn').addEventListener('keydown',e=>{ if(e.key==='Enter') tryPin(); });
-if(ls('gm_pin_ok')!==PIN_HASH) $('lock').classList.add('on');
 function setQuien(q){
   quien=q; ls('gm_quien',q);
   document.querySelectorAll('#quien button').forEach(b=>b.classList.toggle('sel',b.dataset.q===q));
