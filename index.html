@@ -50,9 +50,10 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{pa
 </div>
 <label>Monto</label><input id="f_monto" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
 <label>Descripción</label><textarea id="f_desc" placeholder="Ej: compras de casa, taxi, medicinas..."></textarea>
-<label>Foto del recibo <span class="mut">(opcional) — toca para tomar foto</span></label>
+<label>Foto del recibo <span class="mut">(opcional) — tome una foto o elija una de su galería</span></label>
 <input id="f_file" type="file" accept="image/*" capture="environment" style="display:none">
 <button type="button" id="btnFoto" style="background:#eef2ff;color:#3730a3;border:2px dashed #a5b4fc">📷 Tomar foto del recibo</button>
+<button type="button" id="btnGaleria" style="background:#f0fdf4;color:#166534;border:2px dashed #86efac;margin-top:8px">🖼️ Elegir de la galería</button>
 <div id="previewFoto" style="display:none;margin-top:10px"><img id="imgPreview" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover"><p class="mut" id="fileName" style="margin-top:6px"></p><button type="button" id="btnQuitarFoto" class="secondary" style="padding:8px;font-size:13px;margin-top:8px">Quitar foto</button></div>
 <div id="currentRecibo" class="mut" style="margin-top:8px;display:none"></div>
 
@@ -227,7 +228,8 @@ $('btnGuardar').onclick=async()=>{
 
 
 
-$('btnFoto').onclick=()=>$('f_file').click();
+$('btnFoto').onclick=()=>{ $('f_file').setAttribute('capture','environment'); $('f_file').click(); };
+$('btnGaleria').onclick=()=>{ $('f_file').removeAttribute('capture'); $('f_file').click(); };
 $('btnQuitarFoto').onclick=()=>{
   $('f_file').value='';
   $('previewFoto').style.display='none';
