@@ -1,259 +1,261 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gastos de Mamá - Cuidadora</title>
-<link rel="apple-touch-icon" href="icono-gastos-cuidadoras.png">
-<link rel="icon" type="image/png" href="icono-gastos-cuidadoras.png">
-<meta name="apple-mobile-web-app-title" content="Gastos Mamá">
-<style>
-*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;margin:0;background:#f5f5f7;color:#111}
-.w{max-width:520px;margin:auto;padding:16px}
-.c{background:#fff;border-radius:20px;padding:20px;margin:12px 0;box-shadow:0 2px 10px rgba(0,0,0,.04)}
-.saldo-label{color:#6b7280;font-size:14px}.saldo{font-size:36px;font-weight:900;margin:2px 0}
-label{font-weight:700;display:block;margin:18px 0 8px;font-size:15px}
-input,textarea{width:100%;padding:14px;border:1px solid #d1d5db;border-radius:12px;font:inherit;background:#fff}
-textarea{min-height:90px;resize:vertical}
-input[type=file]{padding:10px}
-button{width:100%;padding:15px;border:0;border-radius:14px;background:#111;color:#fff;font-weight:800;font-size:16px;margin-top:18px;cursor:pointer}
-button.secondary{background:#e5e7eb;color:#111;margin-top:8px}
-.mut{color:#6b7280;font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{padding:10px 6px;border-bottom:1px solid #eee;text-align:left}
-.monto-neg{color:#b91c1c;text-align:right;font-weight:600}
-.badge{font-size:11px;background:#fef3c7;padding:3px 8px;border-radius:20px}
-.edit-btn{width:auto;padding:6px 12px;background:#eef2ff;color:#3730a3;border-radius:8px;font-size:13px;margin:0}
-.msg{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;z-index:99;display:none}
-.msg.show{display:block}
-.quien{display:flex;gap:8px}
-.quien button{margin:0;padding:12px 8px;background:#e5e7eb;color:#111;font-size:15px}
-.quien button.sel{background:#111;color:#fff}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos - Mamá</title>
+    <!-- Importamos una fuente moderna de Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --danger-color: #ff7675;
+            --success-color: #55efc4;
+            --bg-color: #f0f2f5;
+            --text-color: #2d3436;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* Formulario */
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #eee;
+        }
+
+        input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-family: inherit;
+        }
+
+        .btn-add {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+        }
+
+        .btn-add:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Tabla */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #636e72;
+            text-align: left;
+            padding: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background-color: #fcfcfc;
+        }
+
+        .btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-delete:hover {
+            opacity: 0.8;
+            background-color: #d63031;
+        }
+
+        /* Total */
+        .total-section {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="msg" class="msg"></div>
-<main class="w">
-<h1 style="font-size:28px;margin:12px 4px">Gastos de Mamá</h1>
-<div class="c"><div class="saldo-label">Saldo disponible</div><div class="saldo" id="saldo">$0.00</div></div>
 
-<div class="c" id="formCard">
-<h2 id="formTitle" style="margin:0 0 4px">Registrar gasto</h2>
-<p class="mut" id="formSub">Agrega el gasto del día con su recibo si tienes.</p>
+    <div class="container">
+        <h1>💰 Control de Gastos</h1>
 
-<label style="margin-top:14px">¿Quién registra?</label>
-<div class="quien" id="quien"><button type="button" data-q="Aracely">Aracely</button><button type="button" data-q="Genesis">Genesis</button><button type="button" data-q="Ibeth">Ibeth</button></div>
+        <div class="input-group">
+            <input type="text" id="description" placeholder="Descripción (ej. Luz)">
+            <input type="number" id="amount" placeholder="Monto ($)">
+            <input type="date" id="date">
+            <button class="btn-add" onclick="addExpense()">Agregar</button>
+        </div>
 
-<label>Fecha <span class="mut" style="font-weight:400">— toca para cambiar</span></label>
-<div style="display:flex;gap:8px">
-<input id="f_fecha" type="date" style="flex:1">
-<button type="button" id="btnHoy" style="width:auto;padding:10px 14px;margin:0;background:#eef2ff;color:#3730a3">Hoy</button>
-<button type="button" id="btnAyer" style="width:auto;padding:10px 14px;margin:0;background:#eef2ff;color:#3730a3">Ayer</button>
-</div>
-<label>Monto</label><input id="f_monto" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
-<label>Descripción</label><textarea id="f_desc" placeholder="Ej: compras de casa, taxi, medicinas..."></textarea>
-<label>Foto del recibo <span class="mut">(opcional) — tome una foto o elija una de su galería</span></label>
-<input id="f_file" type="file" accept="image/*" capture="environment" style="display:none">
-<button type="button" id="btnFoto" style="background:#eef2ff;color:#3730a3;border:2px dashed #a5b4fc">📷 Tomar foto del recibo</button>
-<button type="button" id="btnGaleria" style="background:#f0fdf4;color:#166534;border:2px dashed #86efac;margin-top:8px">🖼️ Elegir de la galería</button>
-<div id="previewFoto" style="display:none;margin-top:10px"><img id="imgPreview" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover"><p class="mut" id="fileName" style="margin-top:6px"></p><button type="button" id="btnQuitarFoto" class="secondary" style="padding:8px;font-size:13px;margin-top:8px">Quitar foto</button></div>
-<div id="currentRecibo" class="mut" style="margin-top:8px;display:none"></div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-list">
+                    <!-- Los gastos se cargarán aquí -->
+                </tbody>
+            </table>
+        </div>
 
-<button id="btnGuardar">Guardar gasto</button>
-<button id="btnCancelar" class="secondary" style="display:none">Cancelar edición</button>
-</div>
+        <div class="total-section">
+            Total: <span id="total-amount">$0.00</span>
+        </div>
+    </div>
 
-<div class="c"><h2 style="margin:0 0 12px">Últimos movimientos</h2><div id="lista"></div></div>
-</main>
+    <script>
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadExpenses();
+            // Establecer fecha de hoy por defecto
+            document.getElementById('date').valueAsDate = new Date();
+        });
 
-<script>
-const SUPA_URL='https://ywegbbdnphbbqiimqhqf.supabase.co';
-const SUPA_KEY='sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu';
-const H={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
-const $=id=>document.getElementById(id);
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
-const today=()=>new Date().toISOString().slice(0,10);
+        function addExpense() {
+            const description = document.getElementById('description').value;
+            const amount = document.getElementById('amount').value;
+            const date = document.getElementById('date').value;
 
-$('f_fecha').value=today();
+            if (!description || !amount || !date) {
+                alert("Por favor, completa todos los campos");
+                return;
+            }
 
-let editingId=null;
-let editingReciboUrl=null;
-let allData=[];
-let quien=null;
-function ls(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
-function setQuien(q){
-  quien=q; ls('gm_quien',q);
-  document.querySelectorAll('#quien button').forEach(b=>b.classList.toggle('sel',b.dataset.q===q));
-}
-document.querySelectorAll('#quien button').forEach(b=>b.onclick=()=>setQuien(b.dataset.q));
-if(ls('gm_quien')) setQuien(ls('gm_quien'));
+            const expense = {
+                id: Date.now(),
+                description,
+                amount: parseFloat(amount),
+                date
+            };
 
+            let expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            expenses.push(expense);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
 
-function toast(t){const m=$('msg');m.textContent=t;m.classList.add('show');setTimeout(()=>m.classList.remove('show'),3000)}
+            // Limpiar inputs
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            
+            renderExpenses();
+        }
 
-async function api(path,opts={}){
-  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{...opts,headers:{...H,...(opts.headers||{})}});
-  if(!r.ok) throw Error(await r.text());
-  const txt=await r.text(); return txt?JSON.parse(txt):null;
-}
+        function deleteExpense(id) {
+            let expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            expenses = expenses.filter(exp => exp.id !== id);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            renderExpenses();
+        }
 
-async function uploadRecibo(file){
-  if(!file) return null;
-  const name=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const r=await fetch(SUPA_URL+'/storage/v1/object/recibos/'+encodeURIComponent(name),{
-    method:'POST',
-    headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
-    body:file
-  });
-  if(!r.ok) throw Error('No se pudo subir recibo: '+await r.text());
-  return name; // guardamos el path
-}
+        function renderExpenses() {
+            const list = document.getElementById('expense-list');
+            const totalEl = document.getElementById('total-amount');
+            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            
+            list.innerHTML = '';
+            let total = 0;
 
-// Abre el recibo en una pestaña nueva. La pestaña se abre primero (al tocar) para que iPhone/Safari no la bloquee.
-async function verRecibo(path){
-  if(!path) return;
-  const w=window.open('','_blank');
-  try{
-    const r=await fetch(SUPA_URL+'/storage/v1/object/sign/recibos/'+encodeURI(path),{
-      method:'POST',
-      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({expiresIn:300})
-    });
-    if(!r.ok) throw Error(await r.text());
-    const j=await r.json(), signed=j.signedURL||j.signedUrl;
-    if(!signed) throw Error('No signed URL');
-    const url=SUPA_URL+'/storage/v1'+signed;
-    if(w) w.location.href=url; else window.location.href=url;
-  }catch(e){
-    console.error(e);
-    if(w) w.close();
-    toast('No se pudo abrir el recibo.');
-  }
-}
+            // Ordenar por fecha (más reciente primero)
+            expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-async function loadSaldo(){
-  try{
-    const data=await api('movimientos?select=tipo,monto');
-    let d=0,g=0; data.forEach(x=> x.tipo==='deposito'?d+=+x.monto:g+=+x.monto);
-    $('saldo').textContent=money(d-g);
-  }catch(e){console.error(e)}
-}
+            expenses.forEach(exp => {
+                total += exp.amount;
+                list.innerHTML += 
+                    <tr>
+                        <td>${exp.date}</td>
+                        <td>${exp.description}</td>
+                        <td><strong>$${exp.amount.toFixed(2)}</strong></td>
+                        <td><button class="btn-delete" onclick="deleteExpense(${exp.id})">Eliminar</button></td>
+                    </tr>
+                ;
+            });
 
-async function loadLista(){
-  try{
-    const data=await api('movimientos?select=*&order=fecha.desc,creado_en.desc&limit=30');
-    allData=data;
-    if(!data.length){$('lista').innerHTML='<p class="mut">Sin movimientos.</p>';return}
-    $('lista').innerHTML='<table><tr><th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th><th></th></tr>'+
-      data.map(x=>`<tr>
-        <td>${x.fecha}</td>
-        <td>${x.descripcion||''}${x.registrado_por?` <span class="mut">· ${String(x.registrado_por).replace(/</g,'&lt;')}</span>`:''}</td>
-        <td class="monto-neg">-${money(x.monto).replace('$','')}</td>
-        <td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${x.recibo_url?`<button class="edit-btn" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>📎 Recibo</button>`:''}<button class="edit-btn" onclick="editar(${x.id})">✎</button></div></td>
-      </tr>`).join('')+'</table>';
-  }catch(e){console.error(e);$('lista').innerHTML='<p class="mut">Error cargando.</p>'}
-}
+            totalEl.innerText = $${total.toFixed(2)};
+        }
 
-window.editar=(id)=>{
-  const item=allData.find(x=>x.id===id);
-  if(!item) return;
-  editingId=id;
-  editingReciboUrl=item.recibo_url||null;
-  $('f_fecha').value=item.fecha;
-  $('f_monto').value=item.monto;
-  $('f_desc').value=item.descripcion||'';
-  $('formTitle').textContent='Editar gasto';
-  $('formSub').textContent='Corrige el monto, fecha o descripción.';
-  $('btnGuardar').textContent='Actualizar gasto';
-  $('btnCancelar').style.display='block';
-  $('f_file').value='';
-  if(editingReciboUrl){
-    $('currentRecibo').style.display='block';
-    $('currentRecibo').textContent='Recibo actual guardado: '+editingReciboUrl+' (si no eliges otro, se mantiene)';
-  }else{
-    $('currentRecibo').style.display='none';
-  }
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-$('btnCancelar').onclick=()=>{
-  editingId=null; editingReciboUrl=null;
-  $('f_fecha').value=today(); $('f_monto').value=''; $('f_desc').value=''; $('f_file').value='';
-  $('formTitle').textContent='Registrar gasto'; $('formSub').textContent='Agrega el gasto del día con su recibo si tienes.';
-  $('btnGuardar').textContent='Guardar gasto'; $('btnCancelar').style.display='none'; $('currentRecibo').style.display='none';
-}
-
-$('btnGuardar').onclick=async()=>{
-  const fecha=$('f_fecha').value;
-  const monto=parseFloat($('f_monto').value);
-  const desc=$('f_desc').value.trim();
-  const file=$('f_file').files[0];
-  if(!quien && !editingId) return toast('Elige quién registra el gasto');
-  if(!fecha || isNaN(monto) || monto<=0) return toast('Pon fecha y monto válido');
-  if(fecha > today()) return toast('No se puede usar una fecha futura. Usa Hoy o una fecha pasada.');
-  $('btnGuardar').disabled=true; $('btnGuardar').textContent=editingId?'Actualizando...':'Guardando...';
-  try{
-    let reciboPath=editingReciboUrl;
-    if(file){
-      toast('Subiendo recibo...');
-      reciboPath=await uploadRecibo(file);
-    }
-    if(editingId){
-      await api('movimientos?id=eq.'+editingId,{
-        method:'PATCH', headers:{Prefer:'return=minimal'},
-        body:JSON.stringify({fecha, monto, descripcion:desc, recibo_url:reciboPath})
-      });
-      toast('Gasto actualizado');
-    }else{
-      const body={tipo:'gasto', fecha, monto, descripcion:desc, recibo_url:reciboPath, registrado_por:quien};
-      try{
-        await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
-      }catch(err){
-        // Si la columna registrado_por aún no existe en la base de datos, se guarda el nombre dentro de la descripción.
-        if(/registrado_por/.test(String(err.message||err))){
-          delete body.registrado_por; body.descripcion='['+quien+'] '+desc;
-          await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
-        }else throw err;
-      }
-      toast('Gasto guardado');
-    }
-    $('btnCancelar').onclick();
-    await Promise.all([loadSaldo(), loadLista()]);
-  }catch(e){
-    console.error(e);
-    toast('Error: no se pudo guardar. Revisa internet o permisos.');
-  }finally{
-    $('btnGuardar').disabled=false;
-    $('btnGuardar').textContent=editingId?'Actualizar gasto':'Guardar gasto';
-  }
-}
-
-
-
-$('btnFoto').onclick=()=>{ $('f_file').setAttribute('capture','environment'); $('f_file').click(); };
-$('btnGaleria').onclick=()=>{ $('f_file').removeAttribute('capture'); $('f_file').click(); };
-$('btnQuitarFoto').onclick=()=>{
-  $('f_file').value='';
-  $('previewFoto').style.display='none';
-  $('imgPreview').src='';
-  $('fileName').textContent='';
-};
-$('f_file').onchange=(e)=>{
-  const file=e.target.files[0];
-  if(!file) return;
-  $('fileName').textContent=file.name + ' (' + Math.round(file.size/1024) + ' KB)';
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    $('imgPreview').src=ev.target.result;
-    $('previewFoto').style.display='block';
-  };
-  reader.readAsDataURL(file);
-};
-
-
-$('btnHoy').onclick=()=>{$('f_fecha').value=today();}
-$('btnAyer').onclick=()=>{const d=new Date();d.setDate(d.getDate()-1);$('f_fecha').value=d.toISOString().slice(0,10);};
-try{$('f_fecha').setAttribute('max', today());}catch(e){}
-loadSaldo(); loadLista();
-
-</script>
+        function loadExpenses() {
+            renderExpenses();
+        }
+    </script>
 </body>
 </html>
