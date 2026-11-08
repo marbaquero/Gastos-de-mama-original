@@ -29,19 +29,21 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 4px;b
 <label>Recibo (foto, opcional)</label><input type="file" id="f-file" accept="image/*" style="border:none;padding:0">
 <button id="btn-save" style="margin-top:14px">Guardar gasto</button>
 <div id="msg" class="msg hide"></div></div>
-<div class="c"><h2>Últimos movimientos</h2><div id="lista"></div><button id="btn-refresh" style="background:#e5e7eb;color:#111;margin-top:10px">Actualizar</button></div>
+<div class="c" id="debug" style="background:#fff7ed;border:1px solid #fdba74"><b>Debug:</b> <span id="debug-text">Cargando...</span></div><div class="c"><h2>Últimos movimientos</h2><div id="lista"></div><button id="btn-refresh" style="background:#e5e7eb;color:#111;margin-top:10px">Actualizar</button></div>
 </div>
 <script>
 const SUPABASE_URL='https://fftnffmttuzfftntzzhu.supabase.co';
-const SUPABASE_KEY='sb_publishable_f5py08cOv3Bdo0Yvm6lmbA_VBxnbEsP';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmdG5mZm10dHV6ZmZ0bnR6emh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5MTgxNzAsImV4cCI6MjEwOTQ5NDE3MH0.lmYfQeXAq6oPZ-UMj8AQXQq2snU78FatLMbwRftaMyM';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const HOUSEHOLD_ID='7f3a9c2e-4b5d-4a8e-9f1c-2d3e4f5a6b7c';
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
 document.getElementById('f-fecha').valueAsDate=new Date();
 function note(t,e=false){const m=document.getElementById('msg');m.className='msg'+(e?' err':'');m.textContent=t;m.classList.remove('hide');setTimeout(()=>m.classList.add('hide'),4000);}
 async function load(){
+  document.getElementById('debug-text').textContent = 'Conectando a ' + SUPABASE_URL + ' household ' + HOUSEHOLD_ID;
   const {data,error}=await sb.from('expense_movements').select('*').eq('household_id',HOUSEHOLD_ID).order('created_at',{ascending:false}).limit(100);
-  if(error){note('No se pudo cargar: '+error.message,true);return;}
+  if(error){document.getElementById('debug-text').textContent = 'ERROR: ' + error.message + ' | code: ' + error.code + ' | details: ' + (error.details||''); note('No se pudo cargar: '+error.message,true);return;}
+  document.getElementById('debug-text').textContent = 'OK - recibidos ' + (data||[]).length + ' movimientos';
   let g=0,d=0;(data||[]).forEach(r=>{if(r.type==='gasto')g+=Number(r.amount); if(r.type==='deposito')d+=Number(r.amount);});
   document.getElementById('saldo').textContent=money(d-g);
   document.getElementById('tg').textContent=money(g);
