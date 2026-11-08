@@ -1,259 +1,657 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gastos de Mamá - Cuidadora</title>
-<link rel="apple-touch-icon" href="icono-gastos-cuidadoras.png">
-<link rel="icon" type="image/png" href="icono-gastos-cuidadoras.png">
-<meta name="apple-mobile-web-app-title" content="Gastos Mamá">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gastos de Mamá — Administrador</title>
+<link rel="apple-touch-icon" href="icono-gastos-admin.png">
+<link rel="icon" type="image/png" href="icono-gastos-admin.png">
+<meta name="apple-mobile-web-app-title" content="Gastos Admin">
 <style>
-*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;margin:0;background:#f5f5f7;color:#111}
-.w{max-width:520px;margin:auto;padding:16px}
-.c{background:#fff;border-radius:20px;padding:20px;margin:12px 0;box-shadow:0 2px 10px rgba(0,0,0,.04)}
-.saldo-label{color:#6b7280;font-size:14px}.saldo{font-size:36px;font-weight:900;margin:2px 0}
-label{font-weight:700;display:block;margin:18px 0 8px;font-size:15px}
-input,textarea{width:100%;padding:14px;border:1px solid #d1d5db;border-radius:12px;font:inherit;background:#fff}
-textarea{min-height:90px;resize:vertical}
-input[type=file]{padding:10px}
-button{width:100%;padding:15px;border:0;border-radius:14px;background:#111;color:#fff;font-weight:800;font-size:16px;margin-top:18px;cursor:pointer}
-button.secondary{background:#e5e7eb;color:#111;margin-top:8px}
-.mut{color:#6b7280;font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{padding:10px 6px;border-bottom:1px solid #eee;text-align:left}
-.monto-neg{color:#b91c1c;text-align:right;font-weight:600}
-.badge{font-size:11px;background:#fef3c7;padding:3px 8px;border-radius:20px}
-.edit-btn{width:auto;padding:6px 12px;background:#eef2ff;color:#3730a3;border-radius:8px;font-size:13px;margin:0}
-.msg{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;z-index:99;display:none}
-.msg.show{display:block}
-.quien{display:flex;gap:8px}
-.quien button{margin:0;padding:12px 8px;background:#e5e7eb;color:#111;font-size:15px}
-.quien button.sel{background:#111;color:#fff}
-</style>
-</head>
-<body>
-<div id="msg" class="msg"></div>
-<main class="w">
-<h1 style="font-size:28px;margin:12px 4px">Gastos de Mamá</h1>
-<div class="c"><div class="saldo-label">Saldo disponible</div><div class="saldo" id="saldo">$0.00</div></div>
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:#f3f4f6;color:#111}
+.w{max-width:860px;margin:auto;padding:14px}.c{background:#fff;border-radius:18px;padding:18px;margin:12px 0;position:relative}
+h1{font-size:28px}.bal{font-size:38px;font-weight:800}.mut{color:#68707d;font-size:14px}
+label{display:block;font-weight:700;margin:14px 0 6px}input,select,button{width:100%;font:inherit;border-radius:12px}
+input,select{padding:13px;border:1px solid #ccd0d5;background:#fff}button{padding:14px;border:0;background:#111;color:#fff;font-weight:800;margin-top:14px;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hide{display:none}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 4px;border-bottom:1px solid #eee;text-align:left;vertical-align:middle}
+.m{text-align:right}.dep{color:#067647}.gas{color:#b42318}
+.del{background:#fee2e2;color:#991b1b;padding:6px 10px;margin:0;width:auto;border-radius:8px}
+.btn-edit{background:#eef2ff;color:#3730a3;padding:6px 10px;margin:0;width:auto;border-radius:8px}
+.btn-small{padding:7px 9px;margin:0;width:auto;font-size:13px}
+.msg{padding:10px;border-radius:10px;background:#ecfdf3;color:#067647;margin:10px 0}.err{background:#fef3f2;color:#b42318}
+.summary{line-height:1.75}.rt{text-align:center;margin-bottom:2px}.rp{text-align:center;color:#68707d;margin-top:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.toolbar button{width:auto;padding:10px 14px;margin:0;font-size:14px}
+.toolbar .danger{background:#fff1f2;color:#991b1b;border:1px solid #fecdd3}
+.row-actions{display:flex;gap:6px;justify-content:flex-end}
+/* Modal */
+#editOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#editOverlay.open{display:flex}
+#editBox{background:#fff;border-radius:18px;padding:20px;width:100%;max-width:420px;max-height:92vh;overflow-y:auto}
+#eReciboActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+#eReciboActions button{width:auto;margin-top:0}
+tr.drop-ok td{background:#eef2ff!important;outline:2px dashed #6366f1;outline-offset:-2px}
+.rcp-drag{cursor:grab}
+#eMoverBox{display:none;margin-top:10px;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.bal{font-size:34px}}
+@media print{body{background:#fff}.w{max-width:none}#top,#depositCard,#allCard,#reportControls,#msg,#editOverlay{display:none!important}#reportCard{display:block!important;margin:0;padding:0}button{display:none!important}}
+</style></head>
+<body><main class="w">
+<div id="top"><h1>Gastos de Mamá — Administrador</h1></div><div id="msg"></div>
 
-<div class="c" id="formCard">
-<h2 id="formTitle" style="margin:0 0 4px">Registrar gasto</h2>
-<p class="mut" id="formSub">Agrega el gasto del día con su recibo si tienes.</p>
+<div class="c"><div class="mut" style="display:flex;justify-content:space-between;align-items:center">Saldo disponible <button id="btnEditSaldo" class="btn-edit" style="width:auto;padding:6px 10px;font-size:13px">✎ Editar</button></div><div class="bal" id="abal">$0.00</div>
+<p>Total gastos: <b id="tg">$0.00</b><br>Total depósitos: <b id="td">$0.00</b></p>
+<div id="editSaldoBox" class="hide" style="margin-top:12px;padding:12px;background:#f9fafb;border-radius:12px;border:1px solid #e5e7eb">
+<label style="margin-top:0">Nuevo saldo disponible</label><input id="nuevoSaldo" type="number" inputmode="decimal" step=".01" placeholder="0.00">
+<div class="grid"><button id="guardarSaldo">Guardar saldo</button><button id="cancelarSaldo" style="background:#e5e7eb;color:#111">Cancelar</button></div>
+<p class="mut" style="margin-top:8px">Esto creará un ajuste automático para que el saldo coincida.</p>
+</div></div>
 
-<label style="margin-top:14px">¿Quién registra?</label>
-<div class="quien" id="quien"><button type="button" data-q="Aracely">Aracely</button><button type="button" data-q="Genesis">Genesis</button><button type="button" data-q="Ibeth">Ibeth</button></div>
+<div class="c" id="depositCard"><h2>Nuevo depósito</h2>
+<label>Fecha</label><input id="df" type="date">
+<label>Monto</label><input id="dm" type="number" inputmode="decimal" step=".01">
+<label>Descripción</label><input id="dd" value="Depósito">
+<button id="sd">Agregar depósito</button></div>
 
-<label>Fecha <span class="mut" style="font-weight:400">— toca para cambiar</span></label>
-<div style="display:flex;gap:8px">
-<input id="f_fecha" type="date" style="flex:1">
-<button type="button" id="btnHoy" style="width:auto;padding:10px 14px;margin:0;background:#eef2ff;color:#3730a3">Hoy</button>
-<button type="button" id="btnAyer" style="width:auto;padding:10px 14px;margin:0;background:#eef2ff;color:#3730a3">Ayer</button>
+<div class="c" id="reportControls"><h2>Reporte mensual</h2>
+<div class="grid"><div><label>Mes</label><select id="rm"></select></div><div><label>Año</label><select id="ry"></select></div></div>
+<button id="gr">Generar reporte</button></div>
+
+<div class="c hide" id="reportCard">
+<h2 class="rt">Gastos de Mamá</h2><p class="rp" id="rperiod"></p>
+<div class="summary">
+Saldo inicial: <b id="ri"></b><br>
+Gastos del mes: <b id="re"></b><br>
+Depósitos del mes: <b id="rd"></b><br>
+Saldo del mes: <b id="rn"></b><br>
+Saldo final acumulado: <b id="rf"></b>
 </div>
-<label>Monto</label><input id="f_monto" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
-<label>Descripción</label><textarea id="f_desc" placeholder="Ej: compras de casa, taxi, medicinas..."></textarea>
-<label>Foto del recibo <span class="mut">(opcional) — tome una foto o elija una de su galería</span></label>
-<input id="f_file" type="file" accept="image/*" capture="environment" style="display:none">
-<button type="button" id="btnFoto" style="background:#eef2ff;color:#3730a3;border:2px dashed #a5b4fc">📷 Tomar foto del recibo</button>
-<button type="button" id="btnGaleria" style="background:#f0fdf4;color:#166534;border:2px dashed #86efac;margin-top:8px">🖼️ Elegir de la galería</button>
-<div id="previewFoto" style="display:none;margin-top:10px"><img id="imgPreview" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover"><p class="mut" id="fileName" style="margin-top:6px"></p><button type="button" id="btnQuitarFoto" class="secondary" style="padding:8px;font-size:13px;margin-top:8px">Quitar foto</button></div>
-<div id="currentRecibo" class="mut" style="margin-top:8px;display:none"></div>
+<div id="rtable" style="margin-top:14px"></div>
+<button id="pdf">Generar PDF / Imprimir</button></div>
 
-<button id="btnGuardar">Guardar gasto</button>
-<button id="btnCancelar" class="secondary" style="display:none">Cancelar edición</button>
+
+<div class="c" id="allCard">
+<h2>Todos los movimientos</h2>
+<div class="toolbar" style="align-items:center">
+<button id="fTodos" class="btn-small" style="background:#111;color:#fff">Todos</button>
+<button id="fGastos" class="btn-small" style="background:#fff;border:1px solid #ddd;color:#111">Solo gastos</button>
+<button id="fDepositos" class="btn-small" style="background:#fff;border:1px solid #ddd;color:#111">Solo depósitos</button>
+<select id="fMes" class="btn-small" style="width:auto;padding:10px;border:1px solid #ddd;background:#fff"><option value="">Todos los meses</option></select>
+</div>
+<div class="toolbar" id="quienBar" style="align-items:center"><span class="mut">Por persona:</span></div>
+<div id="quienTotal" class="hide" style="margin:6px 0 10px;padding:12px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px"></div>
+<div class="toolbar">
+<button id="selAll" class="btn-small" style="background:#111;color:#fff">Seleccionar todo</button>
+<button id="deselAll" class="btn-small" style="background:#111;color:#fff">Deseleccionar</button>
+<button id="delSel" class="btn-small danger">Eliminar seleccionados</button>
+</div>
+<div id="all"></div>
 </div>
 
-<div class="c"><h2 style="margin:0 0 12px">Últimos movimientos</h2><div id="lista"></div></div>
+<div class="c" id="depositHistoryCard">
+<h2>Historial de depósitos por mes</h2>
+<p class="mut">Aquí ves todos los depósitos que has hecho, agrupados por mes. Te sirve para revisar meses anteriores.</p>
+<div id="depHist"></div>
+</div>
+
 </main>
 
+<!-- Modal Editar -->
+<div id="editOverlay"><div id="editBox">
+<h2 style="margin-top:0">Editar movimiento</h2>
+<label>Fecha</label><input id="ef" type="date">
+<label>Tipo</label><select id="et"><option value="gasto">Gasto</option><option value="deposito">Depósito</option></select>
+<label>Monto</label><input id="em" type="number" inputmode="decimal" step=".01">
+<label>Descripción</label><input id="ed" type="text">
+<label>Recibo</label>
+<div id="eReciboActions">
+  <button type="button" id="eVerRecibo" class="btn-small" style="background:#111;color:#fff">Ver recibo</button>
+  <button type="button" id="eDelRecibo" class="del btn-small">Eliminar recibo</button>
+  <button type="button" id="eMoverRecibo" class="btn-small" style="background:#eef2ff;color:#3730a3">Mover a otro movimiento</button>
+</div>
+<div id="eMoverBox">
+  <div class="mut" style="margin-bottom:6px">Elija el movimiento que debe quedarse con este recibo:</div>
+  <select id="eMoverSel"></select>
+  <button type="button" id="eMoverOk" class="btn-small" style="background:#111;color:#fff;margin-top:8px;width:100%">Mover recibo</button>
+</div>
+<input type="file" id="eReciboFile" accept="image/*" style="margin-top:10px;padding:10px;border:1px solid #ccd0d5;background:#fff">
+<button type="button" id="eSubirRecibo" class="btn-small" style="background:#111;color:#fff;margin-top:8px;width:100%">Subir recibo</button>
+<div class="grid" style="margin-top:12px">
+<button id="saveEdit">Guardar cambios</button>
+<button id="cancelEdit" style="background:#e5e7eb;color:#111">Cancelar</button>
+</div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPA_URL='https://ywegbbdnphbbqiimqhqf.supabase.co';
-const SUPA_KEY='sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu';
-const H={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
-const $=id=>document.getElementById(id);
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
-const today=()=>new Date().toISOString().slice(0,10);
+const U='https://fftnffmttuzfftntzzhu.supabase.co',K='sb_publishable_f5py08cOv3Bdo0Yvm6lmbA_VBxnbEsP',sb=window.supabase.createClient(U,K),$=x=>document.getElementById(x),money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0),today=()=>new Date().toISOString().slice(0,10);
+let ACCESS_TOKEN=K;
+const H={apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'};
+let HOUSEHOLD_ID=null;
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+$('df').value=today();
 
-$('f_fecha').value=today();
+let ALL_DATA = [];
+let editingId = null;
+let editingItem = null;
 
-let editingId=null;
-let editingReciboUrl=null;
-let allData=[];
-let quien=null;
-function ls(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
-function setQuien(q){
-  quien=q; ls('gm_quien',q);
-  document.querySelectorAll('#quien button').forEach(b=>b.classList.toggle('sel',b.dataset.q===q));
+function translatePath(p){
+  return p.replace(/\bmovimientos\b/g,'expense_movements')
+    .replace(/\bfecha\b/g,'movement_date')
+    .replace(/\bcreado_en\b/g,'created_at')
+    .replace(/\btipo\b/g,'type')
+    .replace(/\bmonto\b/g,'amount')
+    .replace(/\bdescripcion\b/g,'description')
+    .replace(/\brecibo_url\b/g,'receipt_path');
 }
-document.querySelectorAll('#quien button').forEach(b=>b.onclick=()=>setQuien(b.dataset.q));
-if(ls('gm_quien')) setQuien(ls('gm_quien'));
-
-
-function toast(t){const m=$('msg');m.textContent=t;m.classList.add('show');setTimeout(()=>m.classList.remove('show'),3000)}
-
-async function api(path,opts={}){
-  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{...opts,headers:{...H,...(opts.headers||{})}});
+function translateBody(body,isPost){
+  const map={fecha:'movement_date',tipo:'type',monto:'amount',descripcion:'description',recibo_url:'receipt_path',creado_en:'created_at'};
+  const out={};
+  for(const [k,v] of Object.entries(body)) out[map[k]||k]=v;
+  if(isPost){
+    out.household_id=HOUSEHOLD_ID;
+    if(!out.registered_by) out.registered_by='Admin';
+  }
+  return out;
+}
+function mapRow(r){
+  if(!r||typeof r!=='object') return r;
+  return {...r,
+    fecha:r.movement_date??r.fecha,
+    tipo:r.type??r.tipo,
+    monto:r.amount??r.monto,
+    descripcion:r.description??r.descripcion,
+    recibo_url:r.receipt_path??r.recibo_url,
+    creado_en:r.created_at??r.creado_en,
+    registrado_por:r.registered_by??r.registrado_por
+  };
+}
+function mapData(data){
+  if(Array.isArray(data)) return data.map(mapRow);
+  if(data&&typeof data==='object') return mapRow(data);
+  return data;
+}
+async function api(p,o={}){
+  const method=(o.method||'GET').toUpperCase();
+  const opts={...o,headers:{...H,...(o.headers||{})}};
+  if(o.body && method!=='GET'){
+    try{ opts.body=JSON.stringify(translateBody(JSON.parse(o.body),method==='POST')); }catch(e){}
+  }
+  const r=await fetch(U+'/rest/v1/'+translatePath(p),opts);
   if(!r.ok) throw Error(await r.text());
-  const txt=await r.text(); return txt?JSON.parse(txt):null;
+  const t=await r.text();
+  return t?mapData(JSON.parse(t)):null;
 }
-
-async function uploadRecibo(file){
-  if(!file) return null;
-  const name=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const r=await fetch(SUPA_URL+'/storage/v1/object/recibos/'+encodeURIComponent(name),{
+async function verRecibo(path){
+ if(!path)return;
+ try{
+  const r=await fetch(U+'/storage/v1/object/sign/recibos/'+encodeURI(path),{
+   method:'POST',
+   headers:{...H},
+   body:JSON.stringify({expiresIn:300})
+  });
+  if(!r.ok)throw Error(await r.text());
+  const j=await r.json(), signed=j.signedURL||j.signedUrl;
+  if(!signed)throw Error('No signed URL');
+  window.open(U+'/storage/v1'+signed,'_blank');
+ }catch(e){console.error(e);note('No se pudo abrir el recibo.',true)}
+}
+async function uploadRecibo(file, id){
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const path=`${HOUSEHOLD_ID}/mov_${id}_${Date.now()}.${ext}`;
+  const r=await fetch(U+'/storage/v1/object/recibos/'+encodeURIComponent(path),{
     method:'POST',
-    headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+    headers:{...H,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},
     body:file
   });
-  if(!r.ok) throw Error('No se pudo subir recibo: '+await r.text());
-  return name; // guardamos el path
+  if(!r.ok)throw Error(await r.text());
+  return path;
 }
-
-// Abre el recibo en una pestaña nueva. La pestaña se abre primero (al tocar) para que iPhone/Safari no la bloquee.
-async function verRecibo(path){
-  if(!path) return;
-  const w=window.open('','_blank');
+async function deleteReciboStorage(path){
+  if(!path)return;
   try{
-    const r=await fetch(SUPA_URL+'/storage/v1/object/sign/recibos/'+encodeURI(path),{
-      method:'POST',
-      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({expiresIn:300})
+    const r=await fetch(U+'/storage/v1/object/recibos/'+encodeURIComponent(path),{
+      method:'DELETE',
+      headers:{...H}
     });
-    if(!r.ok) throw Error(await r.text());
-    const j=await r.json(), signed=j.signedURL||j.signedUrl;
-    if(!signed) throw Error('No signed URL');
-    const url=SUPA_URL+'/storage/v1'+signed;
-    if(w) w.location.href=url; else window.location.href=url;
-  }catch(e){
-    console.error(e);
-    if(w) w.close();
-    toast('No se pudo abrir el recibo.');
+    if(!r.ok)console.warn('No se pudo borrar el recibo anterior del storage', await r.text());
+  }catch(e){ console.warn('No se pudo borrar el recibo anterior del storage', e); }
+}
+function note(t,e=false){$('msg').className='msg'+(e?' err':'');$('msg').textContent=t;setTimeout(()=>{$('msg').className='';$('msg').textContent=''},3500)}
+
+
+
+let FILTRO_TIPO='todos';
+let FILTRO_MES='';
+let FILTRO_QUIEN='';
+const PERSONAS=['Aracely','Genesis','Ibeth'];
+const normQ=s=>String(s||'').trim().toLowerCase();
+const SIN_NOMBRE='Sin nombre';
+function quienDe(x){
+  const r=String(x.registrado_por||'').trim();
+  if(r) return r;
+  const m=String(x.descripcion||'').match(/\[([^\]]+)\]/);
+  if(m && PERSONAS.some(p=>normQ(p)===normQ(m[1]))) return m[1].trim();
+  return x.tipo==='gasto' ? 'Aracely' : '';  // gastos anteriores al selector: todos son de Aracely
+}
+let MES_DETALLE_DEPOSITOS='';
+
+function tab(a){
+ if(!a.length)return '<span class="mut">Sin movimientos en este filtro.</span>';
+ return '<table><tr><th></th><th>Fecha</th><th>Descripción</th><th class="m">Monto</th><th>Recibo</th><th></th></tr>'+
+ a.map(x=>`<tr data-id="${x.id}">
+ <td><input type="checkbox" class="chk" data-id="${x.id}"></td>
+ <td>${x.fecha}</td>
+ <td>${x.descripcion||''}${x.registrado_por?` <a href="#" class="quien-link mut" data-q="${String(x.registrado_por).replace(/"/g,'&quot;').replace(/</g,'&lt;')}" style="text-decoration:underline">· ${String(x.registrado_por).replace(/</g,'&lt;')}</a>`:''}</td>
+ <td class="m ${x.tipo==='deposito'?'dep':'gas'}">${x.tipo==='deposito'?'+':'-'}${money(x.monto)}</td>
+ <td>${x.recibo_url?`<button type="button" class="btn-small rcp-drag" draggable="true" data-src="${x.id}" title="Arrastre este botón sobre otro movimiento para mover el recibo" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>Ver recibo</button>`:''}</td>
+ <td><div class="row-actions">
+   <button class="btn-edit" onclick="openEdit(${x.id})">✎</button>
+   <button class="del" onclick="del(${x.id})">×</button>
+ </div></td>
+ </tr>`).join('')+'</table>';
+}
+
+function renderQuien(f){
+  const bar=$('quienBar'); if(!bar) return;
+  const nombres=[...PERSONAS];
+  ALL_DATA.forEach(x=>{ const n=quienDe(x); if(n && !nombres.some(p=>normQ(p)===normQ(n))) nombres.push(n); });
+  bar.innerHTML='<span class="mut">Por persona:</span>'+nombres.map(n=>{
+    const on=normQ(n)===normQ(FILTRO_QUIEN);
+    return `<button type="button" class="btn-small quien-chip" data-q="${n.replace(/"/g,'&quot;')}" style="${on?'background:#111;color:#fff':'background:#fff;border:1px solid #ddd;color:#111'}">${n.replace(/</g,'&lt;')}</button>`;
+  }).join('');
+  const sinN=ALL_DATA.filter(x=>x.tipo==='gasto' && !quienDe(x));
+  if(sinN.length){
+    const on=FILTRO_QUIEN===SIN_NOMBRE;
+    bar.innerHTML+=`<button type="button" class="btn-small quien-chip" data-q="${SIN_NOMBRE}" style="${on?'background:#111;color:#fff':'background:#fff;border:1px dashed #999;color:#555'}">${SIN_NOMBRE} (${sinN.length})</button>`;
   }
+  const box=$('quienTotal');
+  if(!FILTRO_QUIEN){ box.className='hide'; box.innerHTML=''; return; }
+  const gastos=f.filter(x=>x.tipo==='gasto');
+  const tot=gastos.reduce((s,x)=>s+(+x.monto||0),0);
+  const mesTxt=FILTRO_MES?` en ${FILTRO_MES}`:' (todos los meses)';
+  box.className='';
+  const sinNota = FILTRO_QUIEN===SIN_NOMBRE ? '<br><span class="mut">Gastos anteriores al selector “¿Quién registra?”: no tienen nombre guardado.</span>' : '';
+  box.innerHTML=`<b>${FILTRO_QUIEN.replace(/</g,'&lt;')}</b>${mesTxt}${sinNota}<br><span style="font-size:26px;font-weight:800">${money(tot)}</span> <span class="mut">en ${gastos.length} gasto${gastos.length===1?'':'s'}</span>`;
+}
+function setQuien(n){ FILTRO_QUIEN = (normQ(FILTRO_QUIEN)===normQ(n)) ? '' : n; aplicarFiltros(); }
+document.addEventListener('click',(e)=>{
+  const c=e.target.closest('.quien-chip,.quien-link');
+  if(!c) return;
+  e.preventDefault();
+  setQuien(c.getAttribute('data-q'));
+});
+function aplicarFiltros(){
+  let f=[...ALL_DATA];
+  if(FILTRO_TIPO!=='todos') f=f.filter(x=>x.tipo===FILTRO_TIPO);
+  if(FILTRO_MES) f=f.filter(x=>x.fecha.startsWith(FILTRO_MES));
+  if(FILTRO_QUIEN) f=f.filter(x=> FILTRO_QUIEN===SIN_NOMBRE ? (x.tipo==='gasto' && !quienDe(x)) : normQ(quienDe(x))===normQ(FILTRO_QUIEN));
+  $('all').innerHTML=tab(f);
+  renderQuien(f);
 }
 
-async function loadSaldo(){
+function renderDepositHistory(){
+  const depositos = ALL_DATA.filter(x=>x.tipo==='deposito');
+  if(!depositos.length){ $('depHist').innerHTML='<p class="mut">Aún no hay depósitos.</p>'; return; }
+  const grupos={};
+  depositos.forEach(x=>{
+    const ym=x.fecha.slice(0,7);
+    if(!grupos[ym]) grupos[ym]={total:0,items:[]};
+    grupos[ym].total+=+x.monto;
+    grupos[ym].items.push(x);
+  });
+  const meses = Object.keys(grupos).sort().reverse();
+  const sel=$('fMes');
+  if(sel.options.length===1){
+    meses.forEach(ym=>{
+      const [y,m]=ym.split('-');
+      const opt=document.createElement('option');
+      opt.value=ym; opt.textContent=`${MONTHS[parseInt(m)-1]} ${y} — ${money(grupos[ym].total)}`;
+      sel.appendChild(opt);
+    });
+  }
+  let htm='<table><tr><th>Mes</th><th class="m">Total depositado</th><th>Cantidad</th><th></th></tr>';
+  meses.forEach(ym=>{
+    const [y,m]=ym.split('-');
+    const activo = MES_DETALLE_DEPOSITOS===ym ? ' style="background:#f3f4f6"' : '';
+    htm+=`<tr${activo}><td><b>${MONTHS[parseInt(m)-1]} ${y}</b></td><td class="m dep">${money(grupos[ym].total)}</td><td>${grupos[ym].items.length} depósitos</td><td><button class="btn-small" style="background:#111;color:#fff;width:auto" onclick="verDepositosDelMes('${ym}')">Ver</button></td></tr>`;
+  });
+  htm+='</table>';
+  const mesMostrar = MES_DETALLE_DEPOSITOS || (meses[0] || '');
+  const itemsMostrar = mesMostrar ? grupos[mesMostrar]?.items || [] : depositos.slice(0,20);
+  const [ySel,mSel] = mesMostrar ? mesMostrar.split('-') : ['',''];
+  const titulo = mesMostrar ? `Depósitos de ${MONTHS[parseInt(mSel)-1]} ${ySel} — Total ${money(grupos[mesMostrar].total)}` : 'Últimos 20 depósitos';
+  htm+=`<div style="margin-top:16px"><h3 style="margin:8px 0">${titulo}</h3>`;
+  htm+='<table><tr><th>Fecha</th><th>Descripción</th><th class="m">Monto</th></tr>';
+  if(!itemsMostrar.length){
+    htm+=`<tr><td colspan="3" class="mut">No hay depósitos en este mes</td></tr>`;
+  } else {
+    itemsMostrar.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(x=>{
+      htm+=`<tr><td>${x.fecha}</td><td>${x.descripcion||''}</td><td class="m dep">+${money(x.monto)}</td></tr>`;
+    });
+  }
+  htm+='</table>';
+  if(!MES_DETALLE_DEPOSITOS){
+    htm+=`<p class="mut" style="margin-top:8px">Haz clic en "Ver" para ver solo los depósitos de ese mes. También filtra la tabla de arriba.</p>`;
+  } else {
+    htm+=`<p style="margin-top:10px"><button class="btn-small" style="background:#fff;border:1px solid #ddd;color:#111;width:auto" onclick="limpiarFiltroDepositos()">← Ver todos los meses</button></p>`;
+  }
+  htm+='</div>';
+  $('depHist').innerHTML=htm;
+}
+
+window.verDepositosDelMes=(ym)=>{
+  MES_DETALLE_DEPOSITOS=ym;
+  FILTRO_MES=ym;
+  FILTRO_TIPO='deposito';
+  $('fMes').value=ym;
+  aplicarFiltros();
+  renderDepositHistory();
+  document.getElementById('depositHistoryCard').scrollIntoView({behavior:'smooth'});
+};
+
+window.limpiarFiltroDepositos=()=>{
+  MES_DETALLE_DEPOSITOS='';
+  FILTRO_MES='';
+  FILTRO_TIPO='todos';
+  $('fMes').value='';
+  aplicarFiltros();
+  renderDepositHistory();
+};
+
+window.filtrarPorMes=(ym)=>{
+  FILTRO_MES=ym; $('fMes').value=ym; FILTRO_TIPO='deposito';
+  MES_DETALLE_DEPOSITOS=ym;
+  aplicarFiltros();
+  renderDepositHistory();
+};
+
+async function render(){try{
+  let a=await api('movimientos?select=*&order=fecha.desc,creado_en.desc');
+  ALL_DATA=a;let g=0,d=0;a.forEach(x=>x.tipo==='deposito'?d+=+x.monto:g+=+x.monto);
+  SALDO_ACTUAL = d-g;
+  $('abal').textContent=money(SALDO_ACTUAL);$('tg').textContent=money(g);$('td').textContent=money(d);
+  aplicarFiltros();
+  renderDepositHistory();
+}catch(e){console.error(e);note('No se pudo conectar.',true)}}
+
+
+
+async function add(tipo,f,m,d){m=+m;if(!f||m<=0)return note('Ingresa fecha y monto válido.',true);try{await api('movimientos',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({tipo,fecha:f,monto:m,descripcion:d})});await render();note('Guardado.');return true}catch(e){note('No se pudo guardar.',true)}}
+$('sd').onclick=async()=>{if(await add('deposito',$('df').value,$('dm').value,$('dd').value))$('dm').value=''};
+
+window.del=async id=>{if(confirm('¿Eliminar este movimiento?')){await api('movimientos?id=eq.'+id,{method:'DELETE'});render()}};
+
+// --- MOVER RECIBO ---
+// El archivo del recibo no se copia ni se borra: solo se cambia a qué movimiento apunta (recibo_url).
+// Si el destino ya tiene un recibo, se intercambian.
+async function moverRecibo(srcId, dstId){
+  const src = ALL_DATA.find(x=>x.id===srcId), dst = ALL_DATA.find(x=>x.id===dstId);
+  if(!src || !dst || src.id===dst.id || !src.recibo_url) return false;
+  const swap = !!dst.recibo_url;
+  const msg = swap
+    ? `El movimiento "${dst.descripcion||dst.fecha}" ya tiene un recibo. ¿Intercambiar los recibos entre los dos movimientos?`
+    : `¿Mover el recibo de "${src.descripcion||src.fecha}" (${money(src.monto)}) a "${dst.descripcion||dst.fecha}" (${money(dst.monto)})?`;
+  if(!confirm(msg)) return false;
+  const srcPath = src.recibo_url, dstPath = dst.recibo_url || null;
   try{
-    const data=await api('movimientos?select=tipo,monto');
-    let d=0,g=0; data.forEach(x=> x.tipo==='deposito'?d+=+x.monto:g+=+x.monto);
-    $('saldo').textContent=money(d-g);
-  }catch(e){console.error(e)}
+    await api('movimientos?id=eq.'+dst.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({recibo_url:srcPath})});
+    await api('movimientos?id=eq.'+src.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({recibo_url:dstPath})});
+    src.recibo_url = dstPath; dst.recibo_url = srcPath;
+    note(swap ? 'Recibos intercambiados.' : 'Recibo movido.');
+    return true;
+  }catch(e){ console.error(e); note('No se pudo mover el recibo.',true); await render(); return false; }
 }
+// Arrastrar y soltar (computadora): arrastre "Ver recibo" y suéltelo sobre otra fila.
+(function(){
+  const box = $('all'); let dragId = null;
+  box.addEventListener('dragstart',e=>{
+    const b = e.target.closest && e.target.closest('[data-src]');
+    if(!b) return; dragId = +b.dataset.src;
+    e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', String(dragId));
+  });
+  box.addEventListener('dragover',e=>{
+    if(dragId===null) return;
+    const tr = e.target.closest && e.target.closest('tr[data-id]');
+    box.querySelectorAll('tr.drop-ok').forEach(r=>{ if(r!==tr) r.classList.remove('drop-ok'); });
+    if(tr && +tr.dataset.id!==dragId){ e.preventDefault(); tr.classList.add('drop-ok'); }
+  });
+  box.addEventListener('drop',async e=>{
+    const tr = e.target.closest && e.target.closest('tr[data-id]');
+    box.querySelectorAll('tr.drop-ok').forEach(r=>r.classList.remove('drop-ok'));
+    if(!tr || dragId===null) return; e.preventDefault();
+    const from = dragId; dragId = null;
+    if(await moverRecibo(from, +tr.dataset.id)) await render();
+  });
+  box.addEventListener('dragend',()=>{ dragId=null; box.querySelectorAll('tr.drop-ok').forEach(r=>r.classList.remove('drop-ok')); });
+})();
 
-async function loadLista(){
-  try{
-    const data=await api('movimientos?select=*&order=fecha.desc,creado_en.desc&limit=30');
-    allData=data;
-    if(!data.length){$('lista').innerHTML='<p class="mut">Sin movimientos.</p>';return}
-    $('lista').innerHTML='<table><tr><th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th><th></th></tr>'+
-      data.map(x=>`<tr>
-        <td>${x.fecha}</td>
-        <td>${x.descripcion||''}${x.registrado_por?` <span class="mut">· ${String(x.registrado_por).replace(/</g,'&lt;')}</span>`:''}</td>
-        <td class="monto-neg">-${money(x.monto).replace('$','')}</td>
-        <td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${x.recibo_url?`<button class="edit-btn" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>📎 Recibo</button>`:''}<button class="edit-btn" onclick="editar(${x.id})">✎</button></div></td>
-      </tr>`).join('')+'</table>';
-  }catch(e){console.error(e);$('lista').innerHTML='<p class="mut">Error cargando.</p>'}
+// --- EDICION ---
+function updateEditReciboUI(){
+  const has = !!(editingItem && editingItem.recibo_url);
+  $('eVerRecibo').style.display = has ? '' : 'none';
+  $('eDelRecibo').style.display = has ? '' : 'none';
+  $('eMoverRecibo').style.display = has ? '' : 'none';
+  $('eMoverBox').style.display = 'none';
+  $('eSubirRecibo').textContent = has ? 'Reemplazar recibo' : 'Subir recibo';
+  $('eReciboFile').value = '';
 }
-
-window.editar=(id)=>{
-  const item=allData.find(x=>x.id===id);
+window.openEdit = (id)=>{
+  const item = ALL_DATA.find(x=>x.id===id);
   if(!item) return;
-  editingId=id;
-  editingReciboUrl=item.recibo_url||null;
-  $('f_fecha').value=item.fecha;
-  $('f_monto').value=item.monto;
-  $('f_desc').value=item.descripcion||'';
-  $('formTitle').textContent='Editar gasto';
-  $('formSub').textContent='Corrige el monto, fecha o descripción.';
-  $('btnGuardar').textContent='Actualizar gasto';
-  $('btnCancelar').style.display='block';
-  $('f_file').value='';
-  if(editingReciboUrl){
-    $('currentRecibo').style.display='block';
-    $('currentRecibo').textContent='Recibo actual guardado: '+editingReciboUrl+' (si no eliges otro, se mantiene)';
-  }else{
-    $('currentRecibo').style.display='none';
-  }
-  window.scrollTo({top:0,behavior:'smooth'});
+  editingId = id;
+  editingItem = item;
+  $('ef').value = item.fecha;
+  $('et').value = item.tipo;
+  $('em').value = item.monto;
+  $('ed').value = item.descripcion||'';
+  updateEditReciboUI();
+  $('editOverlay').classList.add('open');
 }
-
-$('btnCancelar').onclick=()=>{
-  editingId=null; editingReciboUrl=null;
-  $('f_fecha').value=today(); $('f_monto').value=''; $('f_desc').value=''; $('f_file').value='';
-  $('formTitle').textContent='Registrar gasto'; $('formSub').textContent='Agrega el gasto del día con su recibo si tienes.';
-  $('btnGuardar').textContent='Guardar gasto'; $('btnCancelar').style.display='none'; $('currentRecibo').style.display='none';
+function closeEdit(){
+  $('editOverlay').classList.remove('open');
+  editingId=null;
+  editingItem=null;
 }
+$('cancelEdit').onclick=closeEdit;
+$('editOverlay').onclick=(e)=>{ if(e.target.id==='editOverlay') closeEdit(); }
 
-$('btnGuardar').onclick=async()=>{
-  const fecha=$('f_fecha').value;
-  const monto=parseFloat($('f_monto').value);
-  const desc=$('f_desc').value.trim();
-  const file=$('f_file').files[0];
-  if(!quien && !editingId) return toast('Elige quién registra el gasto');
-  if(!fecha || isNaN(monto) || monto<=0) return toast('Pon fecha y monto válido');
-  if(fecha > today()) return toast('No se puede usar una fecha futura. Usa Hoy o una fecha pasada.');
-  $('btnGuardar').disabled=true; $('btnGuardar').textContent=editingId?'Actualizando...':'Guardando...';
+$('eMoverRecibo').onclick=()=>{
+  if(!editingItem || !editingItem.recibo_url) return;
+  const opts = ALL_DATA.filter(x=>x.id!==editingItem.id && x.tipo==='gasto')
+    .map(x=>`<option value="${x.id}">${x.fecha} · ${(x.descripcion||'').replace(/</g,'&lt;')} · ${money(x.monto)}${x.recibo_url?' (ya tiene recibo)':''}</option>`).join('');
+  $('eMoverSel').innerHTML = opts || '<option value="">No hay otros gastos</option>';
+  $('eMoverBox').style.display = 'block';
+};
+$('eMoverOk').onclick=async()=>{
+  const dst = +$('eMoverSel').value;
+  if(!editingItem || !dst) return;
+  const src = editingItem.id;
+  if(await moverRecibo(src, dst)){ closeEdit(); await render(); }
+};
+$('eVerRecibo').onclick=()=>{ if(editingItem) verRecibo(editingItem.recibo_url); };
+
+$('eDelRecibo').onclick=async()=>{
+  if(!editingItem || !editingItem.recibo_url) return;
+  if(!confirm('¿Eliminar el recibo de este movimiento? Esta acción no se puede deshacer.')) return;
+  const oldPath = editingItem.recibo_url;
   try{
-    let reciboPath=editingReciboUrl;
-    if(file){
-      toast('Subiendo recibo...');
-      reciboPath=await uploadRecibo(file);
-    }
-    if(editingId){
-      await api('movimientos?id=eq.'+editingId,{
-        method:'PATCH', headers:{Prefer:'return=minimal'},
-        body:JSON.stringify({fecha, monto, descripcion:desc, recibo_url:reciboPath})
-      });
-      toast('Gasto actualizado');
-    }else{
-      const body={tipo:'gasto', fecha, monto, descripcion:desc, recibo_url:reciboPath, registrado_por:quien};
-      try{
-        await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
-      }catch(err){
-        // Si la columna registrado_por aún no existe en la base de datos, se guarda el nombre dentro de la descripción.
-        if(/registrado_por/.test(String(err.message||err))){
-          delete body.registrado_por; body.descripcion='['+quien+'] '+desc;
-          await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
-        }else throw err;
-      }
-      toast('Gasto guardado');
-    }
-    $('btnCancelar').onclick();
-    await Promise.all([loadSaldo(), loadLista()]);
+    $('eDelRecibo').disabled=true;
+    await api('movimientos?id=eq.'+editingId,{
+      method:'PATCH',
+      headers:{Prefer:'return=minimal'},
+      body:JSON.stringify({recibo_url:null})
+    });
+    await deleteReciboStorage(oldPath);
+    editingItem.recibo_url = null;
+    const dataItem = ALL_DATA.find(x=>x.id===editingId);
+    if(dataItem) dataItem.recibo_url = null;
+    updateEditReciboUI();
+    note('Recibo eliminado.');
+    aplicarFiltros();
   }catch(e){
     console.error(e);
-    toast('Error: no se pudo guardar. Revisa internet o permisos.');
+    note('No se pudo eliminar el recibo.',true);
   }finally{
-    $('btnGuardar').disabled=false;
-    $('btnGuardar').textContent=editingId?'Actualizar gasto':'Guardar gasto';
+    $('eDelRecibo').disabled=false;
+  }
+};
+
+$('eSubirRecibo').onclick=async()=>{
+  const f = $('eReciboFile').files[0];
+  if(!f) return note('Selecciona o toma una foto del recibo primero.',true);
+  if(!editingId) return;
+  const oldPath = editingItem ? editingItem.recibo_url : null;
+  try{
+    $('eSubirRecibo').disabled=true;
+    $('eSubirRecibo').textContent='Subiendo...';
+    const newPath = await uploadRecibo(f, editingId);
+    await api('movimientos?id=eq.'+editingId,{
+      method:'PATCH',
+      headers:{Prefer:'return=minimal'},
+      body:JSON.stringify({recibo_url:newPath})
+    });
+    if(oldPath && oldPath!==newPath) await deleteReciboStorage(oldPath);
+    if(editingItem) editingItem.recibo_url = newPath;
+    const dataItem = ALL_DATA.find(x=>x.id===editingId);
+    if(dataItem) dataItem.recibo_url = newPath;
+    updateEditReciboUI();
+    note('Recibo actualizado.');
+    aplicarFiltros();
+  }catch(e){
+    console.error(e);
+    note('No se pudo subir el recibo.',true);
+  }finally{
+    $('eSubirRecibo').disabled=false;
+    $('eSubirRecibo').textContent = (editingItem && editingItem.recibo_url) ? 'Reemplazar recibo' : 'Subir recibo';
+  }
+};
+
+$('saveEdit').onclick=async()=>{
+  if(!editingId) return;
+  const f=$('ef').value, t=$('et').value, m=parseFloat($('em').value), d=$('ed').value.trim();
+  if(!f || isNaN(m) || m<=0) return note('Fecha y monto válidos requeridos.',true);
+  try{
+    await api('movimientos?id=eq.'+editingId,{
+      method:'PATCH',
+      headers:{Prefer:'return=minimal'},
+      body:JSON.stringify({fecha:f, tipo:t, monto:m, descripcion:d})
+    });
+    note('Movimiento actualizado.');
+    closeEdit();
+    await render();
+  }catch(e){
+    console.error(e);
+    note('No se pudo actualizar. Revisa políticas RLS de UPDATE en Supabase.',true);
+  }
+};
+
+// --- SELECCION MULTIPLE (como en tu captura) ---
+$('selAll').onclick=()=>{ document.querySelectorAll('.chk').forEach(c=>c.checked=true); }
+$('deselAll').onclick=()=>{ document.querySelectorAll('.chk').forEach(c=>c.checked=false); }
+
+$('fTodos').onclick=()=>{FILTRO_TIPO='todos';FILTRO_MES='';FILTRO_QUIEN='';$('fMes').value='';aplicarFiltros();};
+$('fGastos').onclick=()=>{FILTRO_TIPO='gasto';aplicarFiltros();};
+$('fDepositos').onclick=()=>{FILTRO_TIPO='deposito';aplicarFiltros();};
+$('fMes').onchange=(e)=>{FILTRO_MES=e.target.value;aplicarFiltros();};
+
+$('delSel').onclick=async()=>{
+  const ids=[...document.querySelectorAll('.chk:checked')].map(c=>c.dataset.id);
+  if(!ids.length) return note('No hay nada seleccionado.',true);
+  if(!confirm(`¿Eliminar ${ids.length} movimientos seleccionados?`)) return;
+  try{
+    await api('movimientos?id=in.('+ids.join(',')+')',{method:'DELETE'});
+    note(`${ids.length} eliminados.`);
+    render();
+  }catch(e){ note('No se pudo eliminar seleccionados.',true) }
+};
+
+function initReport(){
+ MONTHS.forEach((x,i)=>$('rm').insertAdjacentHTML('beforeend',`<option value="${i+1}">${x}</option>`));
+ let y=new Date().getFullYear();for(let n=y+1;n>=2025;n--)$('ry').insertAdjacentHTML('beforeend',`<option value="${n}">${n}</option>`);
+ $('rm').value=new Date().getMonth()+1;$('ry').value=y;
+}
+async function report(){
+ try{
+  const y=+$('ry').value,m=+$('rm').value,start=`${y}-${String(m).padStart(2,'0')}-01`,next=m===12?`${y+1}-01-01`:`${y}-${String(m+1).padStart(2,'0')}-01`;
+  const before=await api(`movimientos?select=tipo,monto&fecha=lt.${start}`);
+  const rows=await api(`movimientos?select=*&fecha=gte.${start}&fecha=lt.${next}&order=fecha.asc,creado_en.asc`);
+  let initial=0,dep=0,exp=0;before.forEach(x=>initial+=x.tipo==='deposito'?+x.monto:-x.monto);rows.forEach(x=>x.tipo==='deposito'?dep+=+x.monto:exp+=+x.monto);
+  const net=dep-exp,final=initial+net;
+  $('rperiod').textContent=`${MONTHS[m-1]} ${y}`;$('ri').textContent=money(initial);$('re').textContent=money(exp);$('rd').textContent=money(dep);$('rn').textContent=money(net);$('rf').textContent=money(final);
+  $('rtable').innerHTML=rows.length?'<table><tr><th>Fecha</th><th>Descripción</th><th class="m">Gasto</th><th class="m">Depósito</th><th>Recibo</th></tr>'+rows.map(x=>`<tr><td>${x.fecha}</td><td>${x.descripcion||''}</td><td class="m">${x.tipo==='gasto'?money(x.monto):''}</td><td class="m">${x.tipo==='deposito'?money(x.monto):''}</td><td>${x.recibo_url?`<button type="button" class="btn-small" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>Ver recibo</button>`:''}</td></tr>`).join('')+`<tr><th colspan="2">Totales</th><th class="m">${money(exp)}</th><th class="m">${money(dep)}</th><th></th></tr></table>`:'<p class="mut">No hay movimientos en este mes.</p>';
+  $('reportCard').classList.remove('hide');$('reportCard').scrollIntoView({behavior:'smooth'});
+ }catch(e){note('No se pudo generar el reporte.',true)}
+}
+$('gr').onclick=report;$('pdf').onclick=()=>window.print();
+try{document.getElementById('df').setAttribute('max', today());}catch(e){}
+
+let SALDO_ACTUAL = 0;
+
+// --- EDITAR SALDO DISPONIBLE MANUALMENTE ---
+$('btnEditSaldo').onclick=()=>{
+  $('editSaldoBox').classList.remove('hide');
+  $('nuevoSaldo').value = SALDO_ACTUAL.toFixed(2);
+  $('nuevoSaldo').focus();
+};
+$('cancelarSaldo').onclick=()=>{
+  $('editSaldoBox').classList.add('hide');
+  $('nuevoSaldo').value='';
+};
+$('guardarSaldo').onclick=async()=>{
+  const nuevo = parseFloat($('nuevoSaldo').value);
+  if(isNaN(nuevo)){ return note('Ingresa un saldo válido.',true); }
+  const diff = +(nuevo - SALDO_ACTUAL).toFixed(2);
+  if(Math.abs(diff) < 0.01){
+    $('editSaldoBox').classList.add('hide');
+    return note('El saldo ya es ese.');
+  }
+  try{
+    $('guardarSaldo').disabled=true;
+    $('guardarSaldo').textContent='Guardando...';
+    if(diff>0){
+      await add('deposito', today(), diff, 'Ajuste manual de saldo disponible');
+    }else{
+      await add('gasto', today(), Math.abs(diff), 'Ajuste manual de saldo disponible');
+    }
+    $('editSaldoBox').classList.add('hide');
+    $('nuevoSaldo').value='';
+  }catch(e){
+    console.error(e);
+    note('No se pudo ajustar el saldo.',true);
+  }finally{
+    $('guardarSaldo').disabled=false;
+    $('guardarSaldo').textContent='Guardar saldo';
+  }
+};
+
+async function initAdmin(){
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ location.href='https://marbaquero.github.io/portal.html'; return; }
+    ACCESS_TOKEN=session.access_token;
+    H.Authorization='Bearer '+ACCESS_TOKEN;
+    const {data:member,error}=await sb.from('household_members')
+      .select('household_id,role')
+      .eq('user_id',session.user.id)
+      .eq('role','owner')
+      .limit(1)
+      .maybeSingle();
+    if(error||!member){
+      document.body.innerHTML='<div style="max-width:560px;margin:80px auto;padding:24px;font-family:Arial,sans-serif"><h2>This account is not linked to a household.</h2><p>Sign in with the owner account from the portal.</p></div>';
+      return;
+    }
+    HOUSEHOLD_ID=member.household_id;
+    sb.auth.onAuthStateChange((_event,s)=>{
+      if(s){ ACCESS_TOKEN=s.access_token; H.Authorization='Bearer '+ACCESS_TOKEN; }
+    });
+    initReport();
+    await render();
+    setInterval(render,15000);
+  }catch(e){
+    console.error(e);
+    document.body.innerHTML='<div style="max-width:560px;margin:80px auto;padding:24px;font-family:Arial,sans-serif"><h2>Could not load the admin app.</h2><p>Reload from the portal.</p></div>';
   }
 }
-
-
-
-$('btnFoto').onclick=()=>{ $('f_file').setAttribute('capture','environment'); $('f_file').click(); };
-$('btnGaleria').onclick=()=>{ $('f_file').removeAttribute('capture'); $('f_file').click(); };
-$('btnQuitarFoto').onclick=()=>{
-  $('f_file').value='';
-  $('previewFoto').style.display='none';
-  $('imgPreview').src='';
-  $('fileName').textContent='';
-};
-$('f_file').onchange=(e)=>{
-  const file=e.target.files[0];
-  if(!file) return;
-  $('fileName').textContent=file.name + ' (' + Math.round(file.size/1024) + ' KB)';
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    $('imgPreview').src=ev.target.result;
-    $('previewFoto').style.display='block';
-  };
-  reader.readAsDataURL(file);
-};
-
-
-$('btnHoy').onclick=()=>{$('f_fecha').value=today();}
-$('btnAyer').onclick=()=>{const d=new Date();d.setDate(d.getDate()-1);$('f_fecha').value=d.toISOString().slice(0,10);};
-try{$('f_fecha').setAttribute('max', today());}catch(e){}
-loadSaldo(); loadLista();
-
-</script>
-</body>
-</html>
+initAdmin();
+</script></body></html>
