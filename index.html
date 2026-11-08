@@ -1,82 +1,254 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Gastos de Mamá — Cuidadora</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gastos de Mamá - Cuidadora</title>
+<link rel="apple-touch-icon" href="icono-gastos-cuidadoras.png">
+<link rel="icon" type="image/png" href="icono-gastos-cuidadoras.png">
+<meta name="apple-mobile-web-app-title" content="Gastos Mamá">
 <style>
-*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:#f3f4f6;color:#111827}
-.w{max-width:640px;margin:auto;padding:14px}.c{background:#fff;border-radius:18px;padding:18px;margin:12px 0}
-h1{font-size:26px}.bal{font-size:36px;font-weight:800}.mut{color:#68707d;font-size:14px}
-label{display:block;font-weight:700;margin:14px 0 6px}input,select,button{width:100%;font:inherit;border-radius:12px}
-input,select{padding:13px;border:1px solid #ccd0d5;background:#fff}button{padding:14px;border:0;background:#111;color:#fff;font-weight:700;cursor:pointer}
-.msg{padding:10px;border-radius:10px;background:#ecfdf3;color:#067647;margin:10px 0}.err{background:#fef3f2;color:#b42318}.hide{display:none}
-table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 4px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
-.m{text-align:right}.dep{color:#067647}.gas{color:#b42318}
-.btn-small{padding:7px 9px;margin:0;width:auto;font-size:13px}
-.btn-recibo{background:#111;color:#fff;padding:6px 10px;font-size:12px;border-radius:8px;width:auto}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;margin:0;background:#f5f5f7;color:#111}
+.w{max-width:520px;margin:auto;padding:16px}
+.c{background:#fff;border-radius:20px;padding:20px;margin:12px 0;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.saldo-label{color:#6b7280;font-size:14px}.saldo{font-size:36px;font-weight:900;margin:2px 0}
+label{font-weight:700;display:block;margin:18px 0 8px;font-size:15px}
+input,textarea{width:100%;padding:14px;border:1px solid #d1d5db;border-radius:12px;font:inherit;background:#fff}
+textarea{min-height:90px;resize:vertical}
+input[type=file]{padding:10px}
+button{width:100%;padding:15px;border:0;border-radius:14px;background:#111;color:#fff;font-weight:800;font-size:16px;margin-top:18px;cursor:pointer}
+button.secondary{background:#e5e7eb;color:#111;margin-top:8px}
+.mut{color:#6b7280;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{padding:10px 6px;border-bottom:1px solid #eee;text-align:left}
+.monto-neg{color:#b91c1c;text-align:right;font-weight:600}
+.badge{font-size:11px;background:#fef3c7;padding:3px 8px;border-radius:20px}
+.edit-btn{width:auto;padding:6px 12px;background:#eef2ff;color:#3730a3;border-radius:8px;font-size:13px;margin:0}
+.msg{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;z-index:99;display:none}
+.msg.show{display:block}
+.quien{display:flex;gap:8px}
+.quien button{margin:0;padding:12px 8px;background:#e5e7eb;color:#111;font-size:15px}
+.quien button.sel{background:#111;color:#fff}
 </style>
 </head>
 <body>
-<div class="w">
-<h1>Gastos de Mamá — Cuidadora</h1>
-<div class="c"><div class="mut">Saldo disponible</div><div class="bal" id="saldo">$0.00</div><div class="mut">Total gastos: <span id="tg">$0.00</span></div></div>
-<div class="c"><h2>Registrar gasto</h2>
-<label>¿Quién registra?</label><select id="quien"><option value="Aracely">Aracely</option><option value="Genesis">Genesis</option><option value="Ibeth">Ibeth</option></select>
-<label>Fecha</label><input type="date" id="f-fecha">
-<label>Monto</label><input type="number" step="0.01" inputmode="decimal" id="f-monto" placeholder="0.00">
-<label>Descripción</label><input type="text" id="f-desc" placeholder="Ej: Medicinas, comida...">
-<label>Recibo (foto, opcional)</label><input type="file" id="f-file" accept="image/*" style="border:none;padding:0">
-<button id="btn-save" style="margin-top:14px">Guardar gasto</button>
-<div id="msg" class="msg hide"></div></div>
-<div class="c" id="debug" style="background:#fff7ed;border:1px solid #fdba74"><b>Debug:</b> <span id="debug-text">Cargando...</span></div><div class="c"><h2>Últimos movimientos</h2><div id="lista"></div><button id="btn-refresh" style="background:#e5e7eb;color:#111;margin-top:10px">Actualizar</button></div>
+<div id="msg" class="msg"></div>
+<main class="w">
+<h1 style="font-size:28px;margin:12px 4px">Gastos de Mamá</h1>
+<div class="c"><div class="saldo-label">Saldo disponible</div><div class="saldo" id="saldo">$0.00</div></div>
+
+<div class="c" id="formCard">
+<h2 id="formTitle" style="margin:0 0 4px">Registrar gasto</h2>
+<p class="mut" id="formSub">Agrega el gasto del día con su recibo si tienes.</p>
+
+<label style="margin-top:14px">¿Quién registra?</label>
+<div class="quien" id="quien"><button type="button" data-q="Aracely">Aracely</button><button type="button" data-q="Genesis">Genesis</button><button type="button" data-q="Ibeth">Ibeth</button></div>
+
+<label>Fecha <span class="mut" style="font-weight:400">— toca para cambiar</span></label>
+<div style="display:flex;gap:8px">
+<input id="f_fecha" type="date" style="flex:1">
+<button type="button" id="btnHoy" style="width:auto;padding:10px 14px;margin:0;background:#eef2ff;color:#3730a3">Hoy</button>
+<button type="button" id="btnAyer" style="width:auto;padding:10px 14px;margin:0;background:#eef2ff;color:#3730a3">Ayer</button>
 </div>
+<label>Monto</label><input id="f_monto" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
+<label>Descripción</label><textarea id="f_desc" placeholder="Ej: compras de casa, taxi, medicinas..."></textarea>
+<label>Foto del recibo <span class="mut">(opcional) — tome una foto o elija una de su galería</span></label>
+<input id="f_file" type="file" accept="image/*" capture="environment" style="display:none">
+<button type="button" id="btnFoto" style="background:#eef2ff;color:#3730a3;border:2px dashed #a5b4fc">📷 Tomar foto del recibo</button>
+<button type="button" id="btnGaleria" style="background:#f0fdf4;color:#166534;border:2px dashed #86efac;margin-top:8px">🖼 Elegir de la galería</button>
+<div id="previewFoto" style="display:none;margin-top:10px"><img id="imgPreview" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover"><p class="mut" id="fileName" style="margin-top:6px"></p><button type="button" id="btnQuitarFoto" class="secondary" style="padding:8px;font-size:13px;margin-top:8px">Quitar foto</button></div>
+<div id="currentRecibo" class="mut" style="margin-top:8px;display:none"></div>
+
+<button id="btnGuardar">Guardar gasto</button>
+<button id="btnCancelar" class="secondary" style="display:none">Cancelar edición</button>
+</div>
+
+<div class="c"><h2 style="margin:0 0 12px">Últimos movimientos</h2><div id="lista"></div></div>
+</main>
+
 <script>
-const SUPABASE_URL='https://fftnffmttuzfftntzzhu.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmdG5mZm10dHV6ZmZ0bnR6emh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5MTgxNzAsImV4cCI6MjEwOTQ5NDE3MH0.lmYfQeXAq6oPZ-UMj8AQXQq2snU78FatLMbwRftaMyM';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const HOUSEHOLD_ID='7f3a9c2e-4b5d-4a8e-9f1c-2d3e4f5a6b7c';
+const SUPA_URL='https://ywegbbdnphbbqiimqhqf.supabase.co';
+const SUPA_KEY='sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu';
+const H={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
-document.getElementById('f-fecha').valueAsDate=new Date();
-function note(t,e=false){const m=document.getElementById('msg');m.className='msg'+(e?' err':'');m.textContent=t;m.classList.remove('hide');setTimeout(()=>m.classList.add('hide'),4000);}
-async function load(){
-  document.getElementById('debug-text').textContent = 'Conectando a ' + SUPABASE_URL + ' household ' + HOUSEHOLD_ID;
-  const {data,error}=await sb.from('expense_movements').select('*').eq('household_id',HOUSEHOLD_ID).order('created_at',{ascending:false}).limit(100);
-  if(error){document.getElementById('debug-text').textContent = 'ERROR: ' + error.message + ' | code: ' + error.code + ' | details: ' + (error.details||''); note('No se pudo cargar: '+error.message,true);return;}
-  document.getElementById('debug-text').textContent = 'OK - recibidos ' + (data||[]).length + ' movimientos';
-  let g=0,d=0;(data||[]).forEach(r=>{if(r.type==='gasto')g+=Number(r.amount); if(r.type==='deposito')d+=Number(r.amount);});
-  document.getElementById('saldo').textContent=money(d-g);
-  document.getElementById('tg').textContent=money(g);
-  const list=document.getElementById('lista');
-  if(!data||!data.length){list.innerHTML='<p class="mut">Sin movimientos todavía.</p>';return;}
-  list.innerHTML='<table><tr><th>Fecha</th><th>Descripción</th><th class="m">Monto</th><th>Recibo</th></tr>'+data.map(x=>`<tr><td>${new Date(x.movement_date).toLocaleDateString()}</td><td>${(x.description||'')}${x.registered_by?` <span class="mut">· ${x.registered_by}</span>`:''}</td><td class="m ${x.type==='deposito'?'dep':'gas'}">${x.type==='deposito'?'+':'-'}${money(x.amount)}</td><td>${x.receipt_path?`<button class="btn-recibo" onclick="verRecibo('${x.receipt_path}')">Ver</button>`:''}</td></tr>`).join('')+'</table>';
+const today=()=>new Date().toISOString().slice(0,10);
+
+$('f_fecha').value=today();
+
+let editingId=null;
+let editingReciboUrl=null;
+let allData=[];
+let quien=null;
+function ls(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
+function setQuien(q){
+  quien=q; ls('gm_quien',q);
+  document.querySelectorAll('#quien button').forEach(b=>b.classList.toggle('sel',b.dataset.q===q));
 }
-window.verRecibo=async(path)=>{const {data,error}=await sb.storage.from('recibos').createSignedUrl(path,300); if(error) return alert(error.message); window.open(data.signedUrl,'_blank');};
-document.getElementById('btn-save').onclick=async()=>{
-  const fecha=document.getElementById('f-fecha').value;
-  const monto=parseFloat(document.getElementById('f-monto').value);
-  const desc=document.getElementById('f-desc').value.trim();
-  const quien=document.getElementById('quien').value;
-  const file=document.getElementById('f-file').files[0];
-  if(!fecha||!monto||monto<=0) return note('Ingresa fecha y monto válido.',true);
-  const btn=document.getElementById('btn-save'); btn.disabled=true; btn.textContent='Guardando...';
+document.querySelectorAll('#quien button').forEach(b=>b.onclick=()=>setQuien(b.dataset.q));
+if(ls('gm_quien')) setQuien(ls('gm_quien'));
+
+
+function toast(t){const m=$('msg');m.textContent=t;m.classList.add('show');setTimeout(()=>m.classList.remove('show'),3000)}
+
+async function api(path,opts={}){
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{...opts,headers:{...H,...(opts.headers||{})}});
+  if(!r.ok) throw Error(await r.text());
+  const txt=await r.text(); return txt?JSON.parse(txt):null;
+}
+
+async function uploadRecibo(file){
+  if(!file) return null;
+  const name=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const r=await fetch(SUPA_URL+'/storage/v1/object/recibos/'+encodeURIComponent(name),{
+    method:'POST',
+    headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+    body:file
+  });
+  if(!r.ok) throw Error('No se pudo subir recibo: '+await r.text());
+  return name;
+}
+
+async function verRecibo(path){
+  if(!path) return;
+  const w=window.open('','_blank');
   try{
-    const {data:ins,error}=await sb.from('expense_movements').insert({household_id:HOUSEHOLD_ID,movement_date:fecha,type:'gasto',amount:monto,description:desc||'Gasto',registered_by:quien}).select('id').single();
-    if(error) throw error;
+    const r=await fetch(SUPA_URL+'/storage/v1/object/sign/recibos/'+encodeURI(path),{
+      method:'POST',
+      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({expiresIn:300})
+    });
+    if(!r.ok) throw Error(await r.text());
+    const j=await r.json(), signed=j.signedURL||j.signedUrl;
+    if(!signed) throw Error('No signed URL');
+    const url=SUPA_URL+'/storage/v1'+signed;
+    if(w) w.location.href=url; else window.location.href=url;
+  }catch(e){
+    console.error(e);
+    if(w) w.close();
+    toast('No se pudo abrir el recibo.');
+  }
+}
+
+async function loadSaldo(){
+  try{
+    const data=await api('movimientos?select=tipo,monto');
+    let d=0,g=0; data.forEach(x=> x.tipo==='deposito'?d+=+x.monto:g+=+x.monto);
+    $('saldo').textContent=money(d-g);
+  }catch(e){console.error(e)}
+}
+
+async function loadLista(){
+  try{
+    const data=await api('movimientos?select=*&order=fecha.desc,creado_en.desc&limit=30');
+    allData=data;
+    if(!data.length){$('lista').innerHTML='<p class="mut">Sin movimientos.</p>';return}
+    $('lista').innerHTML='<table><tr><th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th><th></th></tr>'+
+      data.map(x=>`<tr>
+        <td>${x.fecha}</td>
+        <td>${x.descripcion||''}${x.registrado_por?` <span class="mut">· ${String(x.registrado_por).replace(/</g,'&lt;')}</span>`:''}</td>
+        <td class="monto-neg">-${money(x.monto).replace('$','')}</td>
+        <td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${x.recibo_url?`<button class="edit-btn" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>📎 Recibo</button>`:''}<button class="edit-btn" onclick="editar(${x.id})">✎</button></div></td>
+      </tr>`).join('')+'</table>';
+  }catch(e){console.error(e);$('lista').innerHTML='<p class="mut">Error cargando.</p>'}
+}
+
+window.editar=(id)=>{
+  const item=allData.find(x=>x.id===id);
+  if(!item) return;
+  editingId=id;
+  editingReciboUrl=item.recibo_url||null;
+  $('f_fecha').value=item.fecha;
+  $('f_monto').value=item.monto;
+  $('f_desc').value=item.descripcion||'';
+  $('formTitle').textContent='Editar gasto';
+  $('formSub').textContent='Corrige el monto, fecha o descripción.';
+  $('btnGuardar').textContent='Actualizar gasto';
+  $('btnCancelar').style.display='block';
+  $('f_file').value='';
+  if(editingReciboUrl){
+    $('currentRecibo').style.display='block';
+    $('currentRecibo').textContent='Recibo actual guardado: '+editingReciboUrl+' (si no eliges otro, se mantiene)';
+  }else{
+    $('currentRecibo').style.display='none';
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$('btnCancelar').onclick=()=>{
+  editingId=null; editingReciboUrl=null;
+  $('f_fecha').value=today(); $('f_monto').value=''; $('f_desc').value=''; $('f_file').value='';
+  $('formTitle').textContent='Registrar gasto'; $('formSub').textContent='Agrega el gasto del día con su recibo si tienes.';
+  $('btnGuardar').textContent='Guardar gasto'; $('btnCancelar').style.display='none'; $('currentRecibo').style.display='none';
+}
+
+$('btnGuardar').onclick=async()=>{
+  const fecha=$('f_fecha').value;
+  const monto=parseFloat($('f_monto').value);
+  const desc=$('f_desc').value.trim();
+  const file=$('f_file').files[0];
+  if(!quien && !editingId) return toast('Elige quién registra el gasto');
+  if(!fecha || isNaN(monto) || monto<=0) return toast('Pon fecha y monto válido');
+  if(fecha > today()) return toast('No se puede usar una fecha futura. Usa Hoy o una fecha pasada.');
+  $('btnGuardar').disabled=true; $('btnGuardar').textContent=editingId?'Actualizando...':'Guardando...';
+  try{
+    let reciboPath=editingReciboUrl;
     if(file){
-      const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-      const path=`${HOUSEHOLD_ID}/mov_${ins.id}_${Date.now()}.${ext}`;
-      const {error:upErr}=await sb.storage.from('recibos').upload(path,file);
-      if(upErr) throw upErr;
-      await sb.from('expense_movements').update({receipt_path:path}).eq('id',ins.id).eq('household_id',HOUSEHOLD_ID);
+      toast('Subiendo recibo...');
+      reciboPath=await uploadRecibo(file);
     }
-    document.getElementById('f-monto').value=''; document.getElementById('f-desc').value=''; document.getElementById('f-file').value='';
-    note('Gasto guardado.'); await load();
-  }catch(e){note('No se pudo guardar: '+e.message,true);}
-  finally{btn.disabled=false; btn.textContent='Guardar gasto';}
+    if(editingId){
+      await api('movimientos?id=eq.'+editingId,{
+        method:'PATCH', headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({fecha, monto, descripcion:desc, recibo_url:reciboPath})
+      });
+      toast('Gasto actualizado');
+    }else{
+      const body={tipo:'gasto', fecha, monto, descripcion:desc, recibo_url:reciboPath, registrado_por:quien};
+      try{
+        await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
+      }catch(err){
+        if(/registrado_por/.test(String(err.message||err))){
+          delete body.registrado_por; body.descripcion='['+quien+'] '+desc;
+          await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
+        }else throw err;
+      }
+      toast('Gasto guardado');
+    }
+    $('btnCancelar').onclick();
+    await Promise.all([loadSaldo(), loadLista()]);
+  }catch(e){
+    console.error(e);
+    toast('Error: no se pudo guardar. Revisa internet o permisos.');
+  }finally{
+    $('btnGuardar').disabled=false;
+    $('btnGuardar').textContent=editingId?'Actualizar gasto':'Guardar gasto';
+  }
+}
+
+$('btnFoto').onclick=()=>{ $('f_file').setAttribute('capture','environment'); $('f_file').click(); };
+$('btnGaleria').onclick=()=>{ $('f_file').removeAttribute('capture'); $('f_file').click(); };
+$('btnQuitarFoto').onclick=()=>{
+  $('f_file').value='';
+  $('previewFoto').style.display='none';
+  $('imgPreview').src='';
+  $('fileName').textContent='';
 };
-document.getElementById('btn-refresh').onclick=load;
-load(); setInterval(load,15000);
+$('f_file').onchange=(e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  $('fileName').textContent=file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    $('imgPreview').src=ev.target.result;
+    $('previewFoto').style.display='block';
+  };
+  reader.readAsDataURL(file);
+};
+
+$('btnHoy').onclick=()=>{$('f_fecha').value=today();}
+$('btnAyer').onclick=()=>{const d=new Date();d.setDate(d.getDate()-1);$('f_fecha').value=d.toISOString().slice(0,10);};
+try{$('f_fecha').setAttribute('max', today());}catch(e){}
+loadSaldo(); loadLista();
+
 </script>
 </body>
 </html>
