@@ -40,7 +40,7 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{pa
 <p class="mut" id="formSub">Agrega el gasto del día con su recibo si tienes.</p>
 
 <label style="margin-top:14px">¿Quién registra?</label>
-<div class="quien" id="quien"><button type="button" data-q="Aracely">Aracely</button><button type="button" data-q="Genesis">Genesis</button><button type="button" data-q="Ibeth">Ibeth</button></div>
+<div class="quien" id="quien"></div>
 
 <label>Fecha <span class="mut" style="font-weight:400">— toca para cambiar</span></label>
 <div style="display:flex;gap:8px">
@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{pa
 <label>Foto del recibo <span class="mut">(opcional) — tome una foto o elija una de su galería</span></label>
 <input id="f_file" type="file" accept="image/*" capture="environment" style="display:none">
 <button type="button" id="btnFoto" style="background:#eef2ff;color:#3730a3;border:2px dashed #a5b4fc">📷 Tomar foto del recibo</button>
-<button type="button" id="btnGaleria" style="background:#f0fdf4;color:#166534;border:2px dashed #86efac;margin-top:8px">🖼 Elegir de la galería</button>
+<button type="button" id="btnGaleria" style="background:#f0fdf4;color:#166534;border:2px dashed #86efac;margin-top:8px">🖼️ Elegir de la galería</button>
 <div id="previewFoto" style="display:none;margin-top:10px"><img id="imgPreview" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover"><p class="mut" id="fileName" style="margin-top:6px"></p><button type="button" id="btnQuitarFoto" class="secondary" style="padding:8px;font-size:13px;margin-top:8px">Quitar foto</button></div>
 <div id="currentRecibo" class="mut" style="margin-top:8px;display:none"></div>
 
@@ -65,9 +65,35 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}td,th{pa
 </main>
 
 <script>
-const SUPA_URL='https://ywegbbdnphbbqiimqhqf.supabase.co';
-const SUPA_KEY='sb_publishable_3RLMrZi5yuz9kxeAiMkSMw_y4foVtyu';
+const SUPA_URL='https://fftnffmttuzfftntzzhu.supabase.co';
+const SUPA_KEY='sb_publishable_f5py08cOv3Bdo0Yvm6lmbA_VBxnbEsP';
 const H={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+const token=new URLSearchParams(location.search).get('t')||'';
+let ctx=null;
+let invalidToken=!token;
+
+async function rpc(name,body){
+  const r=await fetch(SUPA_URL+'/rest/v1/rpc/'+name,{method:'POST',headers:H,body:JSON.stringify(body||{})});
+  if(!r.ok) throw Error(await r.text());
+  const txt=await r.text(); return txt?JSON.parse(txt):null;
+}
+
+async function loadContext(){
+  try{
+    ctx=await rpc('caregiver_context',{p_token:token});
+    if(!ctx||ctx.error) throw Error('invalid');
+    invalidToken=false;
+    setQuien(ctx.caregiver_name);
+    const q=document.getElementById('quien');
+    if(q) q.style.display='none';
+    await Promise.all([loadSaldo(),loadLista()]);
+  }catch(e){
+    console.error(e);
+    invalidToken=true;
+    const main=document.querySelector('main');
+    if(main) main.innerHTML='<section style="padding:60px 0;text-align:center"><h1>Este enlace no funciona</h1><p class="mut">Pida a la familia un enlace nuevo.</p></section>';
+  }
+}
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
 const today=()=>new Date().toISOString().slice(0,10);
@@ -95,32 +121,19 @@ async function api(path,opts={}){
   const txt=await r.text(); return txt?JSON.parse(txt):null;
 }
 
-async function uploadRecibo(file){
-  if(!file) return null;
-  const name=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const r=await fetch(SUPA_URL+'/storage/v1/object/recibos/'+encodeURIComponent(name),{
-    method:'POST',
-    headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
-    body:file
-  });
-  if(!r.ok) throw Error('No se pudo subir recibo: '+await r.text());
-  return name;
-}
-
-async function verRecibo(path){
-  if(!path) return;
+async function verRecibo(id){
+  if(!id) return;
   const w=window.open('','_blank');
   try{
-    const r=await fetch(SUPA_URL+'/storage/v1/object/sign/recibos/'+encodeURI(path),{
+    const r=await fetch(SUPA_URL+'/functions/v1/caregiver-expense',{
       method:'POST',
       headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({expiresIn:300})
+      body:JSON.stringify({action:'receipt',token,movement_id:id})
     });
     if(!r.ok) throw Error(await r.text());
-    const j=await r.json(), signed=j.signedURL||j.signedUrl;
-    if(!signed) throw Error('No signed URL');
-    const url=SUPA_URL+'/storage/v1'+signed;
-    if(w) w.location.href=url; else window.location.href=url;
+    const j=await r.json();
+    if(!j.url) throw Error('No signed URL');
+    if(w) w.location.href=j.url; else window.location.href=j.url;
   }catch(e){
     console.error(e);
     if(w) w.close();
@@ -130,23 +143,32 @@ async function verRecibo(path){
 
 async function loadSaldo(){
   try{
-    const data=await api('movimientos?select=tipo,monto');
-    let d=0,g=0; data.forEach(x=> x.tipo==='deposito'?d+=+x.monto:g+=+x.monto);
+    const data=await rpc('caregiver_expenses',{p_token:token,p_limit:500});
+    let d=0,g=0; data.forEach(x=> x.type==='deposito'?d+=+x.amount:g+=+x.amount);
     $('saldo').textContent=money(d-g);
   }catch(e){console.error(e)}
 }
 
 async function loadLista(){
   try{
-    const data=await api('movimientos?select=*&order=fecha.desc,creado_en.desc&limit=30');
-    allData=data;
-    if(!data.length){$('lista').innerHTML='<p class="mut">Sin movimientos.</p>';return}
+    const rows=await rpc('caregiver_expenses',{p_token:token,p_limit:200});
+    allData=rows.map(x=>({
+      id:x.id,
+      fecha:x.movement_date,
+      tipo:x.type,
+      monto:x.amount,
+      descripcion:x.description,
+      recibo_url:x.receipt_path,
+      registrado_por:x.registered_by,
+      creado_en:x.created_at
+    }));
+    if(!allData.length){$('lista').innerHTML='<p class="mut">Sin movimientos.</p>';return}
     $('lista').innerHTML='<table><tr><th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th><th></th></tr>'+
-      data.map(x=>`<tr>
+      allData.map(x=>`<tr>
         <td>${x.fecha}</td>
         <td>${x.descripcion||''}${x.registrado_por?` <span class="mut">· ${String(x.registrado_por).replace(/</g,'&lt;')}</span>`:''}</td>
         <td class="monto-neg">-${money(x.monto).replace('$','')}</td>
-        <td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${x.recibo_url?`<button class="edit-btn" style="background:#111;color:#fff" onclick='verRecibo(${JSON.stringify(x.recibo_url)})'>📎 Recibo</button>`:''}<button class="edit-btn" onclick="editar(${x.id})">✎</button></div></td>
+        <td><div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${x.recibo_url?`<button class="edit-btn" style="background:#111;color:#fff" onclick="verRecibo(${x.id})">📎 Recibo</button>`:''}</div></td>
       </tr>`).join('')+'</table>';
   }catch(e){console.error(e);$('lista').innerHTML='<p class="mut">Error cargando.</p>'}
 }
@@ -185,42 +207,35 @@ $('btnGuardar').onclick=async()=>{
   const monto=parseFloat($('f_monto').value);
   const desc=$('f_desc').value.trim();
   const file=$('f_file').files[0];
-  if(!quien && !editingId) return toast('Elige quién registra el gasto');
+  if(invalidToken) return toast('Este enlace no es válido. Pida uno nuevo.');
+  if(!quien) return toast('No se pudo identificar a la cuidadora.');
   if(!fecha || isNaN(monto) || monto<=0) return toast('Pon fecha y monto válido');
   if(fecha > today()) return toast('No se puede usar una fecha futura. Usa Hoy o una fecha pasada.');
-  $('btnGuardar').disabled=true; $('btnGuardar').textContent=editingId?'Actualizando...':'Guardando...';
+  if(editingId) return toast('Para corregir un gasto, pida a la familia que lo edite en Gastos Admin.');
+  $('btnGuardar').disabled=true; $('btnGuardar').textContent='Guardando...';
   try{
-    let reciboPath=editingReciboUrl;
-    if(file){
-      toast('Subiendo recibo...');
-      reciboPath=await uploadRecibo(file);
-    }
-    if(editingId){
-      await api('movimientos?id=eq.'+editingId,{
-        method:'PATCH', headers:{Prefer:'return=minimal'},
-        body:JSON.stringify({fecha, monto, descripcion:desc, recibo_url:reciboPath})
-      });
-      toast('Gasto actualizado');
-    }else{
-      const body={tipo:'gasto', fecha, monto, descripcion:desc, recibo_url:reciboPath, registrado_por:quien};
-      try{
-        await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
-      }catch(err){
-        if(/registrado_por/.test(String(err.message||err))){
-          delete body.registrado_por; body.descripcion='['+quien+'] '+desc;
-          await api('movimientos',{method:'POST', headers:{Prefer:'return=minimal'}, body:JSON.stringify(body)});
-        }else throw err;
-      }
-      toast('Gasto guardado');
-    }
+    const fd=new FormData();
+    fd.append('token',token);
+    fd.append('type','gasto');
+    fd.append('amount',String(monto));
+    fd.append('description',desc);
+    fd.append('date',fecha);
+    if(file) fd.append('receipt',file);
+    const r=await fetch(SUPA_URL+'/functions/v1/caregiver-expense',{
+      method:'POST',
+      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},
+      body:fd
+    });
+    if(!r.ok) throw Error(await r.text());
+    toast('Gasto guardado');
     $('btnCancelar').onclick();
-    await Promise.all([loadSaldo(), loadLista()]);
+    await Promise.all([loadSaldo(),loadLista()]);
   }catch(e){
     console.error(e);
     toast('Error: no se pudo guardar. Revisa internet o permisos.');
   }finally{
     $('btnGuardar').disabled=false;
-    $('btnGuardar').textContent=editingId?'Actualizar gasto':'Guardar gasto';
+    $('btnGuardar').textContent='Guardar gasto';
   }
 }
 
@@ -244,11 +259,11 @@ $('f_file').onchange=(e)=>{
   reader.readAsDataURL(file);
 };
 
+
 $('btnHoy').onclick=()=>{$('f_fecha').value=today();}
 $('btnAyer').onclick=()=>{const d=new Date();d.setDate(d.getDate()-1);$('f_fecha').value=d.toISOString().slice(0,10);};
 try{$('f_fecha').setAttribute('max', today());}catch(e){}
-loadSaldo(); loadLista();
-
+  if(token) loadContext(); else { const main=document.querySelector('main'); if(main) main.innerHTML='<section style="padding:60px 0;text-align:center"><h1>Este enlace no funciona</h1><p class="mut">Pida a la familia un enlace nuevo.</p></section>'; }
 </script>
 </body>
 </html>
